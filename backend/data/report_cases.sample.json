@@ -1,0 +1,45 @@
+[
+  {
+    "case_id": "case-001",
+    "user_goal": "Summarize January sales with GMV and orders",
+    "domain": "retail",
+    "available_templates": ["tmpl_sales_summary", "tmpl_region_breakdown"],
+    "expected_template_id": "tmpl_sales_summary",
+    "dialogue_script": [
+      {"role": "user", "content": "I need a January sales summary."},
+      {"role": "assistant", "content": "Which metric do you want?"},
+      {"role": "user", "content": "GMV and orders."}
+    ],
+    "param_ground_truth": {
+      "date_range": {
+        "type": "date_range",
+        "value": {"start": "2025-01-01", "end": "2025-01-31"}
+      },
+      "metric": {"type": "enum", "value": "gmv"},
+      "region": {"type": "enum", "value": "east"}
+    },
+    "outline_ground_truth": {
+      "title": "Sales Summary",
+      "sections": [
+        {"title": "Overview", "sections": []},
+        {"title": "Trends", "sections": []}
+      ]
+    },
+    "content_assertions": [
+      {
+        "statement_id": "s1",
+        "sql": "select sum(amount) from sales",
+        "expected_value": 250,
+        "tolerance": 0
+      },
+      {
+        "statement_id": "s2",
+        "sql": "select count(*) from sales where region = 'east'",
+        "expected_value": 1,
+        "tolerance": 0
+      }
+    ],
+    "difficulty": "easy",
+    "tags": ["summary", "sales"]
+  }
+]

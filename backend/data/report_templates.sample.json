@@ -1,0 +1,39 @@
+[
+  {
+    "template_id": "tmpl_sales_summary",
+    "name": "Sales Summary",
+    "description": "Summary of sales performance",
+    "required_params": ["date_range", "metric"],
+    "optional_params": ["region"],
+    "section_schema": {
+      "title": "Sales Summary",
+      "sections": [
+        {"title": "Overview", "sections": []},
+        {"title": "Trends", "sections": []}
+      ]
+    },
+    "param_constraints": {
+      "metric": {"type": "enum", "values": ["gmv", "orders", "aov"]},
+      "date_range": {"type": "date_range"},
+      "region": {"type": "enum", "values": ["east", "west", "north", "south"]}
+    }
+  },
+  {
+    "template_id": "tmpl_region_breakdown",
+    "name": "Region Breakdown",
+    "description": "Regional sales breakdown",
+    "required_params": ["date_range"],
+    "optional_params": ["region"],
+    "section_schema": {
+      "title": "Regional Breakdown",
+      "sections": [
+        {"title": "Top Regions", "sections": []},
+        {"title": "Bottom Regions", "sections": []}
+      ]
+    },
+    "param_constraints": {
+      "date_range": {"type": "date_range"},
+      "region": {"type": "enum", "values": ["east", "west", "north", "south"]}
+    }
+  }
+]

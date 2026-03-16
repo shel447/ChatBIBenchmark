@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ChatBI 报告评测</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark"></div>
+          <div>
+            <div class="brand-title">ChatBI 评测</div>
+          <div class="brand-subtitle">报告评测中心</div>
+          </div>
+        </div>
+        <nav class="nav">
+          <button class="nav-item active" data-view-target="dashboard">总览</button>
+          <button class="nav-item" data-view-target="runs">评测任务</button>
+          <button class="nav-item" data-view-target="run-detail">任务详情</button>
+          <button class="nav-item" data-view-target="case-detail">用例详情</button>
+        </nav>
+        <div class="sidebar-foot">
+          <div class="status-dot"></div>
+          <span>评测引擎在线</span>
+        </div>
+      </aside>
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <div class="eyebrow">智能报告评测</div>
+            <h1 class="title">质量一眼可见</h1>
+          </div>
+          <div class="topbar-actions">
+            <button class="ghost">导入用例</button>
+            <button class="primary">新建评测</button>
+          </div>
+        </header>
+
+        <section class="view active" data-view="dashboard">
+          <div class="cards">
+            <div class="card reveal" style="--d: 0ms">
+              <div class="card-label">综合得分</div>
+              <div class="card-value">0.86</div>
+              <div class="card-note">较上次 +0.04</div>
+            </div>
+            <div class="card reveal" style="--d: 80ms">
+              <div class="card-label">模板 Top1</div>
+              <div class="card-value">92%</div>
+              <div class="card-note">TopK: 98%</div>
+            </div>
+            <div class="card reveal" style="--d: 160ms">
+              <div class="card-label">参数 F1</div>
+              <div class="card-value">0.81</div>
+              <div class="card-note">精确率 0.88</div>
+            </div>
+            <div class="card reveal" style="--d: 240ms">
+              <div class="card-label">5 轮内完成率</div>
+              <div class="card-value">76%</div>
+              <div class="card-note">中位数 4 轮</div>
+            </div>
+          </div>
+
+          <div class="grid">
+            <div class="panel reveal" style="--d: 120ms">
+              <div class="panel-header">
+                <h2>失败分布</h2>
+                <span class="chip">最近 30 次</span>
+              </div>
+              <div class="chart">
+                <svg viewBox="0 0 420 180" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="line" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#0f766e" />
+                      <stop offset="100%" stop-color="#0891b2" />
+                    </linearGradient>
+                  </defs>
+                  <path d="M10 140 C80 80, 140 120, 200 70 C260 20, 320 40, 410 30" fill="none" stroke="url(#line)" stroke-width="3" />
+                  <circle cx="200" cy="70" r="6" fill="#0f766e" />
+                  <circle cx="320" cy="40" r="6" fill="#0891b2" />
+                </svg>
+                <div class="chart-legend">
+                  <div>
+                    <span class="legend-dot"></span>
+                    模板不匹配
+                  </div>
+                  <div>
+                    <span class="legend-dot alt"></span>
+                    内容断言失败
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="panel reveal" style="--d: 200ms">
+              <div class="panel-header">
+                <h2>最近评测</h2>
+                <span class="chip">自动评测</span>
+              </div>
+              <div class="run-list">
+                <div class="run-item">
+                  <div>
+                    <div class="run-title">零售报告 v1.4</div>
+                    <div class="run-sub">200 个用例 · 5 轮</div>
+                  </div>
+                  <div class="run-score">0.87</div>
+                </div>
+                <div class="run-item">
+                  <div>
+                    <div class="run-title">零售报告 v1.3</div>
+                    <div class="run-sub">200 个用例 · 5 轮</div>
+                  </div>
+                  <div class="run-score">0.83</div>
+                </div>
+                <div class="run-item">
+                  <div>
+                    <div class="run-title">零售报告 v1.2</div>
+                    <div class="run-sub">200 个用例 · 5 轮</div>
+                  </div>
+                  <div class="run-score">0.79</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="runs">
+          <div class="panel full">
+            <div class="panel-header">
+              <h2>评测任务列表</h2>
+              <div class="filters">
+                <span class="chip">零售</span>
+                <span class="chip">最近 30 天</span>
+                <span class="chip">自动</span>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>任务</th>
+                  <th>模板 Top1</th>
+                  <th>参数 F1</th>
+                  <th>完成率</th>
+                  <th>内容通过</th>
+                  <th>得分</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>零售 v1.4</td>
+                  <td>0.92</td>
+                  <td>0.81</td>
+                  <td>0.76</td>
+                  <td>0.89</td>
+                  <td class="strong">0.87</td>
+                </tr>
+                <tr>
+                  <td>零售 v1.3</td>
+                  <td>0.90</td>
+                  <td>0.78</td>
+                  <td>0.72</td>
+                  <td>0.88</td>
+                  <td class="strong">0.83</td>
+                </tr>
+                <tr>
+                  <td>零售 v1.2</td>
+                  <td>0.88</td>
+                  <td>0.75</td>
+                  <td>0.69</td>
+                  <td>0.86</td>
+                  <td class="strong">0.79</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" data-view="run-detail">
+          <div class="panel full">
+            <div class="panel-header">
+              <h2>任务详情：零售 v1.4</h2>
+              <span class="chip">200 个用例</span>
+            </div>
+            <div class="metric-grid">
+              <div class="metric">
+                <div class="metric-label">模板 Top1</div>
+                <div class="metric-value">0.92</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">参数 F1</div>
+                <div class="metric-value">0.81</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">完成率</div>
+                <div class="metric-value">0.76</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">内容通过</div>
+                <div class="metric-value">0.89</div>
+              </div>
+            </div>
+            <div class="case-list">
+              <div class="case-item">
+                <div>
+                  <div class="case-title">Case-014：一月汇总</div>
+                  <div class="case-sub">模板不匹配</div>
+                </div>
+                <span class="chip danger">fail</span>
+              </div>
+              <div class="case-item">
+                <div>
+                  <div class="case-title">Case-037：区域拆解</div>
+                  <div class="case-sub">缺少参数：region</div>
+                </div>
+                <span class="chip warn">partial</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="case-detail">
+          <div class="panel full">
+            <div class="panel-header">
+              <h2>用例详情：Case-014</h2>
+              <span class="chip">模板不匹配</span>
+            </div>
+            <div class="case-grid">
+              <div>
+                <h3>对话</h3>
+                <div class="bubble">用户：汇总一月销售表现。</div>
+                <div class="bubble">助手：需要哪个指标？</div>
+                <div class="bubble">用户：GMV 和订单数。</div>
+              </div>
+              <div>
+                <h3>结构化产物</h3>
+                <div class="code-box">selected_template_id：tmpl_region_breakdown</div>
+                <div class="code-box">missing_params：date_range</div>
+                <div class="code-box">outline：2 个章节</div>
+              </div>
+            </div>
+            <div class="panel subtle">
+              <h3>断言核对</h3>
+              <div class="assertions">
+                <div class="assertion pass">s1：sum(amount) = 250</div>
+                <div class="assertion fail">s2：count(region='east') = 1</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script src="app.js"></script>
+  </body>
+</html>
