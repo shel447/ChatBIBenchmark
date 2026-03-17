@@ -131,6 +131,7 @@
                   <label class="filter-label" for="run-case-set">用例集</label>
                   <select class="filter-select" id="run-case-set">
                     <option>全部</option>
+                    <option disabled>零售 种子用例集（种子，不可评测）</option>
                     <option>零售 NL2SQL 基准</option>
                     <option>零售 NL2CHART 基准</option>
                     <option>智能问数 E2E</option>
@@ -234,41 +235,145 @@
                 <button class="ghost">导入用例</button>
               </div>
             </div>
-            <div class="set-grid">
-              <div class="set-card card-link" data-view-link="case-list">
-                <div class="set-title">零售 NL2SQL 基准</div>
-                <div class="set-meta">类型：NL2SQL · 120 用例</div>
-                <div class="set-desc">覆盖销量、GMV、客单价等核心指标问答。</div>
-                <div class="set-tags">
-                  <span class="chip">nl2sql</span>
-                  <span class="chip">retail</span>
+            <div class="case-group">
+              <div class="case-group-header">
+                <h3 class="case-group-title">用例</h3>
+                <span class="case-group-sub">用例集与用例工具</span>
+              </div>
+
+              <div class="case-block">
+                <div class="case-block-header">
+                  <h3>用例集</h3>
+                </div>
+                <div class="set-grid">
+                  <div class="set-card card-link seed-set" data-view-link="case-list">
+                    <div class="set-title">
+                      零售 种子用例集
+                      <span class="chip seed">种子</span>
+                    </div>
+                    <div class="set-meta">类型：NL2SQL · 40 用例</div>
+                    <div class="set-desc">
+                      不完整用例，用于扩增训练素材。
+                      <span class="seed-note">不可评测，仅用于扩增</span>
+                    </div>
+                    <div class="set-tags">
+                      <span class="chip">nl2sql</span>
+                      <span class="chip">seed</span>
+                    </div>
+                  </div>
+                  <div class="set-card card-link" data-view-link="case-list">
+                    <div class="set-title">零售 NL2SQL 基准</div>
+                    <div class="set-meta">类型：NL2SQL · 120 用例</div>
+                    <div class="set-desc">覆盖销量、GMV、客单价等核心指标问答。</div>
+                    <div class="set-tags">
+                      <span class="chip">nl2sql</span>
+                      <span class="chip">retail</span>
+                    </div>
+                  </div>
+                  <div class="set-card card-link" data-view-link="case-list">
+                    <div class="set-title">零售 NL2CHART 基准</div>
+                    <div class="set-meta">类型：NL2CHART · 80 用例</div>
+                    <div class="set-desc">重点评测图表类型匹配与指标选择。</div>
+                    <div class="set-tags">
+                      <span class="chip">nl2chart</span>
+                      <span class="chip">visual</span>
+                    </div>
+                  </div>
+                  <div class="set-card card-link" data-view-link="case-list">
+                    <div class="set-title">智能问数 E2E</div>
+                    <div class="set-meta">类型：智能问数 · 60 用例</div>
+                    <div class="set-desc">SQL + 图表联合评测，覆盖端到端体验。</div>
+                    <div class="set-tags">
+                      <span class="chip">智能问数</span>
+                      <span class="chip">e2e</span>
+                    </div>
+                  </div>
+                  <div class="set-card card-link" data-view-link="case-list">
+                    <div class="set-title">报告多轮交互</div>
+                    <div class="set-meta">类型：报告多轮交互 · 40 用例</div>
+                    <div class="set-desc">模板选择、参数收集与内容断言。</div>
+                    <div class="set-tags">
+                      <span class="chip">report</span>
+                      <span class="chip">multi-turn</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="set-card card-link" data-view-link="case-list">
-                <div class="set-title">零售 NL2CHART 基准</div>
-                <div class="set-meta">类型：NL2CHART · 80 用例</div>
-                <div class="set-desc">重点评测图表类型匹配与指标选择。</div>
-                <div class="set-tags">
-                  <span class="chip">nl2chart</span>
-                  <span class="chip">visual</span>
+
+              <div class="case-block">
+                <div class="case-block-header">
+                  <h3>用例工具</h3>
                 </div>
-              </div>
-              <div class="set-card card-link" data-view-link="case-list">
-                <div class="set-title">智能问数 E2E</div>
-                <div class="set-meta">类型：智能问数 · 60 用例</div>
-                <div class="set-desc">SQL + 图表联合评测，覆盖端到端体验。</div>
-                <div class="set-tags">
-                  <span class="chip">智能问数</span>
-                  <span class="chip">e2e</span>
-                </div>
-              </div>
-              <div class="set-card card-link" data-view-link="case-list">
-                <div class="set-title">报告多轮交互</div>
-                <div class="set-meta">类型：报告多轮交互 · 40 用例</div>
-                <div class="set-desc">模板选择、参数收集与内容断言。</div>
-                <div class="set-tags">
-                  <span class="chip">report</span>
-                  <span class="chip">multi-turn</span>
+                <div class="tool-grid">
+                  <div class="tool-card">
+                    <div class="tool-title">扩增用例集</div>
+                    <div class="tool-row">
+                      <label class="filter-label" for="seed-case-set">种子用例集</label>
+                      <select class="filter-select" id="seed-case-set">
+                        <option>零售 种子用例集</option>
+                      </select>
+                    </div>
+                    <div class="tool-actions">
+                      <button class="ghost">生成预览</button>
+                      <button class="primary">执行扩增</button>
+                    </div>
+                    <div class="tool-summary">
+                      <div class="summary-card">
+                        <div class="summary-label">新增用例</div>
+                        <div class="summary-value">+120</div>
+                      </div>
+                      <div class="summary-card">
+                        <div class="summary-label">删除用例</div>
+                        <div class="summary-value">-8</div>
+                      </div>
+                      <div class="summary-card">
+                        <div class="summary-label">最终规模</div>
+                        <div class="summary-value">152</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="tool-card">
+                    <div class="tool-title">泛化规则管理</div>
+                    <div class="tool-actions">
+                      <button class="ghost">新建规则</button>
+                      <button class="ghost">删除</button>
+                      <button class="primary">启用/停用</button>
+                    </div>
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>规则名</th>
+                          <th>类型</th>
+                          <th>作用范围</th>
+                          <th>状态</th>
+                          <th>更新时间</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>替换时间粒度</td>
+                          <td>替换</td>
+                          <td>日期维度</td>
+                          <td>启用</td>
+                          <td>2026-03-16</td>
+                        </tr>
+                        <tr>
+                          <td>删除空指标</td>
+                          <td>删除</td>
+                          <td>指标字段</td>
+                          <td>停用</td>
+                          <td>2026-03-15</td>
+                        </tr>
+                        <tr>
+                          <td>合并区域口径</td>
+                          <td>合并</td>
+                          <td>地区维度</td>
+                          <td>启用</td>
+                          <td>2026-03-14</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
