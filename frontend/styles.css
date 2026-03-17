@@ -73,21 +73,6 @@ body {
   gap: 14px;
 }
 
-.nav-section {
-  display: grid;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid var(--line);
-}
-
-.nav-label {
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
 
 .nav-item {
   background: transparent;
