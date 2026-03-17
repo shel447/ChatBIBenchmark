@@ -70,55 +70,23 @@ body {
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
-.nav-group {
+.nav-section {
   display: grid;
-  gap: 6px;
-  border: 1px solid var(--line);
+  gap: 8px;
+  padding: 8px 10px;
   border-radius: 14px;
   background: #ffffff;
-  padding: 6px;
+  border: 1px solid var(--line);
 }
 
-.nav-group-header {
-  background: transparent;
-  border: none;
-  padding: 8px 10px;
-  text-align: left;
-  font-size: 12px;
-  border-radius: 10px;
+.nav-label {
+  font-size: 11px;
   color: var(--muted);
-  cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  letter-spacing: 0.12em;
-}
-
-.nav-group-header .chevron {
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--muted);
-  border-bottom: 2px solid var(--muted);
-  transform: rotate(-45deg);
-  transition: transform 0.2s ease;
-}
-
-.nav-group.open .nav-group-header .chevron {
-  transform: rotate(45deg);
-}
-
-.nav-sub {
-  display: none;
-  flex-direction: column;
-  gap: 4px;
-  padding: 2px 0 4px;
-}
-
-.nav-group.open .nav-sub {
-  display: flex;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .nav-item {
@@ -283,24 +251,38 @@ button.ghost {
   margin-bottom: 16px;
 }
 
-.panel-title-group {
+.panel-title-stack {
+  display: grid;
+  gap: 6px;
+}
+
+.breadcrumb {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.back-link {
-  border: 1px solid var(--line);
-  background: #ffffff;
-  color: var(--muted);
-  border-radius: 999px;
-  padding: 6px 12px;
+  gap: 6px;
   font-size: 12px;
-  cursor: pointer;
+  color: var(--muted);
 }
 
-.back-link:hover {
+.crumb-link {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.crumb-link:hover {
   color: var(--ink);
+}
+
+.crumb-sep {
+  color: #cbd5f5;
+}
+
+.crumb-current {
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .panel-header h2 {

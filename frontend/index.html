@@ -18,23 +18,13 @@
         </div>
         <nav class="nav">
           <button class="nav-item primary-nav active" data-view-target="dashboard">总览</button>
-          <div class="nav-group open" data-accordion>
-            <button class="nav-group-header" data-accordion-toggle>
-              <span>评测任务</span>
-              <span class="chevron"></span>
-            </button>
-            <div class="nav-sub">
-              <button class="nav-item" data-view-target="runs">任务列表</button>
-            </div>
+          <div class="nav-section">
+            <div class="nav-label">评测任务</div>
+            <button class="nav-item" data-view-target="runs">任务列表</button>
           </div>
-          <div class="nav-group open" data-accordion>
-            <button class="nav-group-header" data-accordion-toggle>
-              <span>用例</span>
-              <span class="chevron"></span>
-            </button>
-            <div class="nav-sub">
-              <button class="nav-item" data-view-target="case-sets">用例集列表</button>
-            </div>
+          <div class="nav-section">
+            <div class="nav-label">用例</div>
+            <button class="nav-item" data-view-target="case-sets">用例集列表</button>
           </div>
         </nav>
         <div class="sidebar-foot">
@@ -245,8 +235,12 @@
         <section class="view" data-view="case-list">
           <div class="panel full">
             <div class="panel-header">
-              <div class="panel-title-group">
-                <button class="back-link" data-view-link="case-sets">返回用例集列表</button>
+              <div class="panel-title-stack">
+                <div class="breadcrumb">
+                  <button class="crumb-link" data-view-link="case-sets">用例集列表</button>
+                  <span class="crumb-sep">/</span>
+                  <span class="crumb-current">用例列表</span>
+                </div>
                 <h2>用例列表：零售 NL2SQL 基准</h2>
               </div>
               <div class="filters">
@@ -295,8 +289,12 @@
         <section class="view" data-view="run-detail">
           <div class="panel full">
             <div class="panel-header">
-              <div class="panel-title-group">
-                <button class="back-link" data-view-link="runs">返回任务列表</button>
+              <div class="panel-title-stack">
+                <div class="breadcrumb">
+                  <button class="crumb-link" data-view-link="runs">任务列表</button>
+                  <span class="crumb-sep">/</span>
+                  <span class="crumb-current">任务详情</span>
+                </div>
                 <h2>任务详情：零售 v1.4</h2>
               </div>
               <span class="chip">200 个用例</span>
@@ -341,8 +339,14 @@
         <section class="view" data-view="case-detail">
           <div class="panel full">
             <div class="panel-header">
-              <div class="panel-title-group">
-                <button class="back-link" data-view-link="case-list">返回用例列表</button>
+              <div class="panel-title-stack">
+                <div class="breadcrumb">
+                  <button class="crumb-link" data-view-link="case-sets">用例集列表</button>
+                  <span class="crumb-sep">/</span>
+                  <button class="crumb-link" data-view-link="case-list">用例列表</button>
+                  <span class="crumb-sep">/</span>
+                  <span class="crumb-current">用例详情</span>
+                </div>
                 <h2>用例详情：NL2SQL-014</h2>
               </div>
               <span class="chip">智能问数</span>
