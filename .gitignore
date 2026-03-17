@@ -6,3 +6,4 @@ tests/.tmp/
 .uv-cache/
 .venv/
 uvicorn*.log
+.worktrees/
