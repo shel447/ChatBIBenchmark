@@ -468,22 +468,6 @@ button.ghost {
   gap: 20px;
 }
 
-.case-group-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.case-group-title {
-  margin: 0;
-  font-size: 18px;
-}
-
-.case-group-sub {
-  color: var(--muted);
-  font-size: 12px;
-}
-
 .case-block {
   border: 1px solid var(--line);
   border-radius: 16px;

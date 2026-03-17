@@ -35,6 +35,8 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertIn("扩增用例集", response.text)
         self.assertIn("种子", response.text)
         self.assertIn("不可评测", response.text)
+        self.assertNotIn("用例集与用例工具", response.text)
+        self.assertNotIn("<h2>用例集</h2>", response.text)
 
 
 if __name__ == "__main__":
