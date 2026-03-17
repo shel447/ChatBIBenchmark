@@ -73,6 +73,49 @@ body {
   gap: 10px;
 }
 
+.nav-group {
+  display: grid;
+  gap: 6px;
+}
+
+.nav-group-header {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 13px;
+  border-radius: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-group-header .chevron {
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--muted);
+  border-bottom: 2px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+}
+
+.nav-group.open .nav-group-header .chevron {
+  transform: rotate(45deg);
+}
+
+.nav-sub {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 6px;
+}
+
+.nav-group.open .nav-sub {
+  display: flex;
+}
+
 .nav-item {
   background: transparent;
   border: none;

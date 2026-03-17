@@ -18,11 +18,27 @@
         </div>
         <nav class="nav">
           <button class="nav-item active" data-view-target="dashboard">总览</button>
-          <button class="nav-item" data-view-target="runs">评测任务</button>
-          <button class="nav-item" data-view-target="case-sets">用例集列表</button>
-          <button class="nav-item" data-view-target="case-list">用例列表</button>
-          <button class="nav-item" data-view-target="case-detail">用例详情</button>
-          <button class="nav-item" data-view-target="run-detail">任务详情</button>
+          <div class="nav-group open" data-accordion>
+            <button class="nav-group-header" data-accordion-toggle>
+              <span>评测任务</span>
+              <span class="chevron"></span>
+            </button>
+            <div class="nav-sub">
+              <button class="nav-item" data-view-target="runs">任务列表</button>
+              <button class="nav-item" data-view-target="run-detail">任务详情</button>
+            </div>
+          </div>
+          <div class="nav-group open" data-accordion>
+            <button class="nav-group-header" data-accordion-toggle>
+              <span>用例</span>
+              <span class="chevron"></span>
+            </button>
+            <div class="nav-sub">
+              <button class="nav-item" data-view-target="case-sets">用例集列表</button>
+              <button class="nav-item" data-view-target="case-list">用例列表</button>
+              <button class="nav-item" data-view-target="case-detail">用例详情</button>
+            </div>
+          </div>
         </nav>
         <div class="sidebar-foot">
           <div class="status-dot"></div>
