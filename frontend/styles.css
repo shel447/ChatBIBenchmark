@@ -302,6 +302,41 @@ button.ghost {
   font-weight: 600;
 }
 
+.set-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.set-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  background: #fbfdff;
+}
+
+.set-title {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.set-meta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.set-desc {
+  margin: 10px 0;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.set-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -342,6 +377,33 @@ button.ghost {
   margin-top: 8px;
   font-size: 22px;
   font-weight: 600;
+}
+
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.meta-item {
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+}
+
+.meta-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.meta-value {
+  margin-top: 6px;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 .case-list {
@@ -411,6 +473,27 @@ button.ghost {
 .assertion.fail {
   background: rgba(185, 28, 28, 0.12);
   color: var(--danger);
+}
+
+.type-select {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.type-panels {
+  display: grid;
+  gap: 16px;
+}
+
+.type-panel {
+  display: none;
+}
+
+.type-panel.active {
+  display: block;
 }
 
 .view {

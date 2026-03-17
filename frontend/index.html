@@ -19,8 +19,10 @@
         <nav class="nav">
           <button class="nav-item active" data-view-target="dashboard">总览</button>
           <button class="nav-item" data-view-target="runs">评测任务</button>
-          <button class="nav-item" data-view-target="run-detail">任务详情</button>
+          <button class="nav-item" data-view-target="case-sets">用例集列表</button>
+          <button class="nav-item" data-view-target="case-list">用例列表</button>
           <button class="nav-item" data-view-target="case-detail">用例详情</button>
+          <button class="nav-item" data-view-target="run-detail">任务详情</button>
         </nav>
         <div class="sidebar-foot">
           <div class="status-dot"></div>
@@ -176,6 +178,104 @@
           </div>
         </section>
 
+        <section class="view" data-view="case-sets">
+          <div class="panel full">
+            <div class="panel-header">
+              <h2>用例集列表</h2>
+              <div class="filters">
+                <span class="chip">全部类型</span>
+                <span class="chip">零售</span>
+                <span class="chip">最近更新</span>
+              </div>
+            </div>
+            <div class="set-grid">
+              <div class="set-card">
+                <div class="set-title">零售 NL2SQL 基准</div>
+                <div class="set-meta">类型：NL2SQL · 120 用例</div>
+                <div class="set-desc">覆盖销量、GMV、客单价等核心指标问答。</div>
+                <div class="set-tags">
+                  <span class="chip">nl2sql</span>
+                  <span class="chip">retail</span>
+                </div>
+              </div>
+              <div class="set-card">
+                <div class="set-title">零售 NL2CHART 基准</div>
+                <div class="set-meta">类型：NL2CHART · 80 用例</div>
+                <div class="set-desc">重点评测图表类型匹配与指标选择。</div>
+                <div class="set-tags">
+                  <span class="chip">nl2chart</span>
+                  <span class="chip">visual</span>
+                </div>
+              </div>
+              <div class="set-card">
+                <div class="set-title">智能问数 E2E</div>
+                <div class="set-meta">类型：智能问数 · 60 用例</div>
+                <div class="set-desc">SQL + 图表联合评测，覆盖端到端体验。</div>
+                <div class="set-tags">
+                  <span class="chip">智能问数</span>
+                  <span class="chip">e2e</span>
+                </div>
+              </div>
+              <div class="set-card">
+                <div class="set-title">报告多轮交互</div>
+                <div class="set-meta">类型：报告多轮交互 · 40 用例</div>
+                <div class="set-desc">模板选择、参数收集与内容断言。</div>
+                <div class="set-tags">
+                  <span class="chip">report</span>
+                  <span class="chip">multi-turn</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="case-list">
+          <div class="panel full">
+            <div class="panel-header">
+              <h2>用例列表：零售 NL2SQL 基准</h2>
+              <div class="filters">
+                <span class="chip">NL2SQL</span>
+                <span class="chip">难度：中</span>
+                <span class="chip">状态：进行中</span>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>用例 ID</th>
+                  <th>标题</th>
+                  <th>难度</th>
+                  <th>状态</th>
+                  <th>得分</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>NL2SQL-014</td>
+                  <td>一月 GMV 汇总</td>
+                  <td>中</td>
+                  <td>失败</td>
+                  <td class="strong">0.62</td>
+                </tr>
+                <tr>
+                  <td>NL2SQL-031</td>
+                  <td>大区客单价对比</td>
+                  <td>高</td>
+                  <td>部分通过</td>
+                  <td class="strong">0.71</td>
+                </tr>
+                <tr>
+                  <td>NL2SQL-042</td>
+                  <td>月度订单趋势</td>
+                  <td>低</td>
+                  <td>通过</td>
+                  <td class="strong">0.91</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section class="view" data-view="run-detail">
           <div class="panel full">
             <div class="panel-header">
@@ -222,28 +322,117 @@
         <section class="view" data-view="case-detail">
           <div class="panel full">
             <div class="panel-header">
-              <h2>用例详情：Case-014</h2>
-              <span class="chip">模板不匹配</span>
+              <h2>用例详情：NL2SQL-014</h2>
+              <span class="chip">智能问数</span>
             </div>
-            <div class="case-grid">
-              <div>
-                <h3>对话</h3>
-                <div class="bubble">用户：汇总一月销售表现。</div>
-                <div class="bubble">助手：需要哪个指标？</div>
-                <div class="bubble">用户：GMV 和订单数。</div>
+            <div class="meta-grid">
+              <div class="meta-item">
+                <div class="meta-label">用例集</div>
+                <div class="meta-value">零售 NL2SQL 基准</div>
               </div>
-              <div>
-                <h3>结构化产物</h3>
-                <div class="code-box">selected_template_id：tmpl_region_breakdown</div>
-                <div class="code-box">missing_params：date_range</div>
-                <div class="code-box">outline：2 个章节</div>
+              <div class="meta-item">
+                <div class="meta-label">类型</div>
+                <div class="meta-value">智能问数</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">难度</div>
+                <div class="meta-value">中</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">状态</div>
+                <div class="meta-value">失败</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">得分</div>
+                <div class="meta-value">0.62</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">更新时间</div>
+                <div class="meta-value">2026-03-16</div>
               </div>
             </div>
+
             <div class="panel subtle">
-              <h3>断言核对</h3>
-              <div class="assertions">
-                <div class="assertion pass">s1：sum(amount) = 250</div>
-                <div class="assertion fail">s2：count(region='east') = 1</div>
+              <div class="panel-header">
+                <h3>类型面板</h3>
+                <select class="type-select" data-case-type>
+                  <option value="smart-qa">智能问数</option>
+                  <option value="nl2sql">NL2SQL</option>
+                  <option value="nl2chart">NL2CHART</option>
+                  <option value="report-multi">报告多轮交互</option>
+                </select>
+              </div>
+              <div class="type-panels">
+                <div class="type-panel active" data-type-panel="smart-qa">
+                  <div class="case-grid">
+                    <div>
+                      <h3>SQL 产物</h3>
+                      <div class="code-box">question：一月 GMV 与订单数</div>
+                      <div class="code-box">expected_sql：SELECT ...</div>
+                      <div class="code-box">result_diff：2 行不一致</div>
+                    </div>
+                    <div>
+                      <h3>图表产物</h3>
+                      <div class="code-box">chart_type：line</div>
+                      <div class="code-box">expected_metrics：gmv, orders</div>
+                      <div class="code-box">spec_diff：缺少 y2 轴</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="type-panel" data-type-panel="nl2sql">
+                  <div class="case-grid">
+                    <div>
+                      <h3>问题与 SQL</h3>
+                      <div class="bubble">用户：汇总一月 GMV 与订单数。</div>
+                      <div class="code-box">expected_sql：SELECT ...</div>
+                      <div class="code-box">sql_dialect：postgres</div>
+                    </div>
+                    <div>
+                      <h3>结果集对比</h3>
+                      <div class="code-box">hash_expected：9a12f3</div>
+                      <div class="code-box">hash_actual：a01c7b</div>
+                      <div class="code-box">diff：订单数偏差 2.1%</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="type-panel" data-type-panel="nl2chart">
+                  <div class="case-grid">
+                    <div>
+                      <h3>图表规范</h3>
+                      <div class="code-box">chart_type：bar</div>
+                      <div class="code-box">expected_metrics：gmv</div>
+                      <div class="code-box">dimensions：region</div>
+                    </div>
+                    <div>
+                      <h3>规范差异</h3>
+                      <div class="code-box">spec_diff：维度缺失</div>
+                      <div class="code-box">preview：空态</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="type-panel" data-type-panel="report-multi">
+                  <div class="case-grid">
+                    <div>
+                      <h3>多轮对话</h3>
+                      <div class="bubble">用户：生成一月经营报告。</div>
+                      <div class="bubble">助手：需要哪个指标？</div>
+                      <div class="bubble">用户：GMV 和订单数。</div>
+                    </div>
+                    <div>
+                      <h3>参数与大纲</h3>
+                      <div class="code-box">template_id：tmpl_sales_summary</div>
+                      <div class="code-box">missing_params：date_range</div>
+                      <div class="code-box">outline：2 个章节</div>
+                    </div>
+                  </div>
+                  <div class="assertions">
+                    <div class="assertion pass">s1：sum(amount) = 250</div>
+                    <div class="assertion fail">s2：count(region='east') = 1</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
