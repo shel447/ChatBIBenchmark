@@ -18,11 +18,10 @@
         </div>
         <nav class="nav">
           <button class="nav-item primary-nav active" data-view-target="dashboard">总览</button>
-          <div class="nav-section">
-            <div class="nav-label">导航</div>
-            <button class="nav-item" data-view-target="runs">任务列表</button>
-            <button class="nav-item" data-view-target="case-sets">用例集</button>
-          </div>
+          <button class="nav-item" data-view-target="runs">任务列表</button>
+          <button class="nav-item" data-view-target="case-sets">用例集</button>
+          <button class="nav-item" data-view-target="env-config">环境配置</button>
+          <button class="nav-item" data-view-target="metric-sets">指标管理</button>
         </nav>
         <div class="sidebar-foot">
           <div class="status-dot"></div>
@@ -226,6 +225,78 @@
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="env-config">
+          <div class="panel full">
+            <div class="panel-header">
+              <h2>环境配置</h2>
+              <div class="panel-actions">
+                <button class="ghost">新增环境</button>
+                <button class="primary">编辑</button>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>环境名</th>
+                  <th>基础地址</th>
+                  <th>状态</th>
+                  <th>最近更新</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>预发环境</td>
+                  <td>https://staging.chatbi.local</td>
+                  <td>可用</td>
+                  <td>2026-03-16</td>
+                </tr>
+                <tr>
+                  <td>生产环境</td>
+                  <td>https://chatbi.example.com</td>
+                  <td>可用</td>
+                  <td>2026-03-15</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" data-view="metric-sets">
+          <div class="panel full">
+            <div class="panel-header">
+              <h2>评测指标管理</h2>
+              <div class="panel-actions">
+                <button class="ghost">新增参数组合</button>
+                <button class="primary">编辑</button>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>参数集名称</th>
+                  <th>描述</th>
+                  <th>覆盖指标/阈值</th>
+                  <th>最近更新</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>标准评测</td>
+                  <td>默认阈值与权重</td>
+                  <td>模板 0.9 / 参数 0.8</td>
+                  <td>2026-03-16</td>
+                </tr>
+                <tr>
+                  <td>严格评测</td>
+                  <td>偏向内容断言与完成度</td>
+                  <td>内容 0.9 / 完成度 0.85</td>
+                  <td>2026-03-14</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
