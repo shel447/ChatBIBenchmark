@@ -262,6 +262,15 @@ button.ghost {
   font-size: 13px;
 }
 
+.filter-input {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  width: 140px;
+}
+
 .th-with-sort {
   display: flex;
   align-items: center;
@@ -589,6 +598,43 @@ button.ghost {
 .metric-value {
   margin-top: 8px;
   font-size: 22px;
+  font-weight: 600;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.config-item {
+  display: grid;
+  gap: 8px;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.analysis-card {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+}
+
+.analysis-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.analysis-value {
+  margin-top: 6px;
+  font-size: 20px;
   font-weight: 600;
 }
 

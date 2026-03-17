@@ -168,11 +168,8 @@
                     </div>
                   </th>
                   <th>指标参数集</th>
-                  <th>模板 Top1</th>
-                  <th>参数 F1</th>
-                  <th>完成率</th>
-                  <th>内容通过</th>
-                  <th>得分</th>
+                  <th>进展</th>
+                  <th>准确率</th>
                 </tr>
               </thead>
               <tbody>
@@ -183,11 +180,8 @@
                   <td>2026-03-16 10:12</td>
                   <td>2026-03-16 10:20</td>
                   <td>标准评测</td>
-                  <td>0.92</td>
-                  <td>0.81</td>
-                  <td>0.76</td>
-                  <td>0.89</td>
-                  <td class="strong">0.87</td>
+                  <td>60 / 200</td>
+                  <td class="strong">87%</td>
                 </tr>
                 <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.3</td>
@@ -196,11 +190,8 @@
                   <td>2026-03-15 19:40</td>
                   <td>2026-03-15 19:49</td>
                   <td>标准评测</td>
-                  <td>0.90</td>
-                  <td>0.78</td>
-                  <td>0.72</td>
-                  <td>0.88</td>
-                  <td class="strong">0.83</td>
+                  <td>45 / 120</td>
+                  <td class="strong">84%</td>
                 </tr>
                 <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.2</td>
@@ -209,11 +200,8 @@
                   <td>2026-03-14 09:05</td>
                   <td>2026-03-14 09:18</td>
                   <td>严格评测</td>
-                  <td>0.88</td>
-                  <td>0.75</td>
-                  <td>0.69</td>
-                  <td>0.86</td>
-                  <td class="strong">0.79</td>
+                  <td>120 / 200</td>
+                  <td class="strong">79%</td>
                 </tr>
               </tbody>
             </table>
@@ -515,36 +503,34 @@
             </div>
             <div class="metric-grid">
               <div class="metric">
-                <div class="metric-label">模板 Top1</div>
-                <div class="metric-value">0.92</div>
+                <div class="metric-label">进展</div>
+                <div class="metric-value">60 / 200</div>
               </div>
               <div class="metric">
-                <div class="metric-label">参数 F1</div>
-                <div class="metric-value">0.81</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">完成率</div>
-                <div class="metric-value">0.76</div>
-              </div>
-              <div class="metric">
-                <div class="metric-label">内容通过</div>
-                <div class="metric-value">0.89</div>
+                <div class="metric-label">准确率</div>
+                <div class="metric-value">87%</div>
               </div>
             </div>
-            <div class="case-list">
-              <div class="case-item">
-                <div>
-                  <div class="case-title">Case-014：一月汇总</div>
-                  <div class="case-sub">模板不匹配</div>
-                </div>
-                <span class="chip danger">fail</span>
+            <div class="panel subtle">
+              <div class="panel-header">
+                <h3>配置</h3>
               </div>
-              <div class="case-item">
-                <div>
-                  <div class="case-title">Case-037：区域拆解</div>
-                  <div class="case-sub">缺少参数：region</div>
+              <div class="config-grid">
+                <div class="config-item">
+                  <label class="filter-label" for="run-repeat-count">用例集执行次数</label>
+                  <input class="filter-input" id="run-repeat-count" type="number" min="1" value="1" />
                 </div>
-                <span class="chip warn">partial</span>
+              </div>
+            </div>
+            <div class="panel subtle">
+              <div class="panel-header">
+                <h3>已执行分析结果</h3>
+              </div>
+              <div class="analysis-grid">
+                <div class="analysis-card">
+                  <div class="analysis-label">准确率</div>
+                  <div class="analysis-value">87%</div>
+                </div>
               </div>
             </div>
           </div>
