@@ -240,6 +240,57 @@ button.ghost {
   gap: 10px;
 }
 
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.filter-select {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.th-with-sort {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sort-group {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.sort-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #ffffff;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sort-btn.active {
+  color: var(--accent);
+  background: #eef6f5;
+  border-color: rgba(15, 118, 110, 0.18);
+}
+
 .panel-title-stack {
   display: grid;
   gap: 6px;

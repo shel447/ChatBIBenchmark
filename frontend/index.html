@@ -128,9 +128,14 @@
               <div>
                 <h2>评测任务列表</h2>
                 <div class="filters">
-                  <span class="chip">零售</span>
-                  <span class="chip">最近 30 天</span>
-                  <span class="chip">自动</span>
+                  <label class="filter-label" for="run-case-set">用例集</label>
+                  <select class="filter-select" id="run-case-set">
+                    <option>全部</option>
+                    <option>零售 NL2SQL 基准</option>
+                    <option>零售 NL2CHART 基准</option>
+                    <option>智能问数 E2E</option>
+                    <option>报告多轮交互</option>
+                  </select>
                 </div>
               </div>
               <div class="panel-actions">
@@ -141,6 +146,27 @@
               <thead>
                 <tr>
                   <th>任务</th>
+                  <th>用例集</th>
+                  <th>环境</th>
+                  <th>
+                    <div class="th-with-sort">
+                      <span>启动时间</span>
+                      <div class="sort-group">
+                        <button class="sort-btn active" type="button">↓</button>
+                        <button class="sort-btn" type="button">↑</button>
+                      </div>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="th-with-sort">
+                      <span>结束时间</span>
+                      <div class="sort-group">
+                        <button class="sort-btn" type="button">↓</button>
+                        <button class="sort-btn" type="button">↑</button>
+                      </div>
+                    </div>
+                  </th>
+                  <th>指标参数集</th>
                   <th>模板 Top1</th>
                   <th>参数 F1</th>
                   <th>完成率</th>
@@ -151,6 +177,11 @@
               <tbody>
                 <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.4</td>
+                  <td>零售 NL2SQL 基准</td>
+                  <td>预发环境</td>
+                  <td>2026-03-16 10:12</td>
+                  <td>2026-03-16 10:20</td>
+                  <td>标准评测</td>
                   <td>0.92</td>
                   <td>0.81</td>
                   <td>0.76</td>
@@ -159,6 +190,11 @@
                 </tr>
                 <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.3</td>
+                  <td>零售 NL2CHART 基准</td>
+                  <td>预发环境</td>
+                  <td>2026-03-15 19:40</td>
+                  <td>2026-03-15 19:49</td>
+                  <td>标准评测</td>
                   <td>0.90</td>
                   <td>0.78</td>
                   <td>0.72</td>
@@ -167,6 +203,11 @@
                 </tr>
                 <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.2</td>
+                  <td>智能问数 E2E</td>
+                  <td>生产环境</td>
+                  <td>2026-03-14 09:05</td>
+                  <td>2026-03-14 09:18</td>
+                  <td>严格评测</td>
                   <td>0.88</td>
                   <td>0.75</td>
                   <td>0.69</td>

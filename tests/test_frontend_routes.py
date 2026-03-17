@@ -28,6 +28,9 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertIn("用例集", response.text)
         self.assertIn("用例列表", response.text)
         self.assertIn("用例详情", response.text)
+        self.assertIn("启动时间", response.text)
+        self.assertIn("结束时间", response.text)
+        self.assertIn("指标参数集", response.text)
 
 
 if __name__ == "__main__":
