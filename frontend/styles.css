@@ -283,6 +283,26 @@ button.ghost {
   margin-bottom: 16px;
 }
 
+.panel-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-link {
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.back-link:hover {
+  color: var(--ink);
+}
+
 .panel-header h2 {
   margin: 0;
   font-size: 18px;
@@ -377,6 +397,16 @@ button.ghost {
   background: #fbfdff;
 }
 
+.card-link {
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
 .set-title {
   font-weight: 600;
   margin-bottom: 6px;
@@ -410,6 +440,15 @@ button.ghost {
   text-align: left;
   padding: 12px 8px;
   border-bottom: 1px solid var(--line);
+}
+
+.row-link {
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.row-link:hover {
+  background: #f8fafc;
 }
 
 .table .strong {

@@ -25,7 +25,6 @@
             </button>
             <div class="nav-sub">
               <button class="nav-item" data-view-target="runs">任务列表</button>
-              <button class="nav-item" data-view-target="run-detail">任务详情</button>
             </div>
           </div>
           <div class="nav-group open" data-accordion>
@@ -35,8 +34,6 @@
             </button>
             <div class="nav-sub">
               <button class="nav-item" data-view-target="case-sets">用例集列表</button>
-              <button class="nav-item" data-view-target="case-list">用例列表</button>
-              <button class="nav-item" data-view-target="case-detail">用例详情</button>
             </div>
           </div>
         </nav>
@@ -165,7 +162,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.4</td>
                   <td>0.92</td>
                   <td>0.81</td>
@@ -173,7 +170,7 @@
                   <td>0.89</td>
                   <td class="strong">0.87</td>
                 </tr>
-                <tr>
+                <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.3</td>
                   <td>0.90</td>
                   <td>0.78</td>
@@ -181,7 +178,7 @@
                   <td>0.88</td>
                   <td class="strong">0.83</td>
                 </tr>
-                <tr>
+                <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.2</td>
                   <td>0.88</td>
                   <td>0.75</td>
@@ -205,7 +202,7 @@
               </div>
             </div>
             <div class="set-grid">
-              <div class="set-card">
+              <div class="set-card card-link" data-view-link="case-list">
                 <div class="set-title">零售 NL2SQL 基准</div>
                 <div class="set-meta">类型：NL2SQL · 120 用例</div>
                 <div class="set-desc">覆盖销量、GMV、客单价等核心指标问答。</div>
@@ -214,7 +211,7 @@
                   <span class="chip">retail</span>
                 </div>
               </div>
-              <div class="set-card">
+              <div class="set-card card-link" data-view-link="case-list">
                 <div class="set-title">零售 NL2CHART 基准</div>
                 <div class="set-meta">类型：NL2CHART · 80 用例</div>
                 <div class="set-desc">重点评测图表类型匹配与指标选择。</div>
@@ -223,7 +220,7 @@
                   <span class="chip">visual</span>
                 </div>
               </div>
-              <div class="set-card">
+              <div class="set-card card-link" data-view-link="case-list">
                 <div class="set-title">智能问数 E2E</div>
                 <div class="set-meta">类型：智能问数 · 60 用例</div>
                 <div class="set-desc">SQL + 图表联合评测，覆盖端到端体验。</div>
@@ -232,7 +229,7 @@
                   <span class="chip">e2e</span>
                 </div>
               </div>
-              <div class="set-card">
+              <div class="set-card card-link" data-view-link="case-list">
                 <div class="set-title">报告多轮交互</div>
                 <div class="set-meta">类型：报告多轮交互 · 40 用例</div>
                 <div class="set-desc">模板选择、参数收集与内容断言。</div>
@@ -248,7 +245,10 @@
         <section class="view" data-view="case-list">
           <div class="panel full">
             <div class="panel-header">
-              <h2>用例列表：零售 NL2SQL 基准</h2>
+              <div class="panel-title-group">
+                <button class="back-link" data-view-link="case-sets">返回用例集列表</button>
+                <h2>用例列表：零售 NL2SQL 基准</h2>
+              </div>
               <div class="filters">
                 <span class="chip">NL2SQL</span>
                 <span class="chip">难度：中</span>
@@ -266,21 +266,21 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <tr class="row-link" data-view-link="case-detail">
                   <td>NL2SQL-014</td>
                   <td>一月 GMV 汇总</td>
                   <td>中</td>
                   <td>失败</td>
                   <td class="strong">0.62</td>
                 </tr>
-                <tr>
+                <tr class="row-link" data-view-link="case-detail">
                   <td>NL2SQL-031</td>
                   <td>大区客单价对比</td>
                   <td>高</td>
                   <td>部分通过</td>
                   <td class="strong">0.71</td>
                 </tr>
-                <tr>
+                <tr class="row-link" data-view-link="case-detail">
                   <td>NL2SQL-042</td>
                   <td>月度订单趋势</td>
                   <td>低</td>
@@ -295,7 +295,10 @@
         <section class="view" data-view="run-detail">
           <div class="panel full">
             <div class="panel-header">
-              <h2>任务详情：零售 v1.4</h2>
+              <div class="panel-title-group">
+                <button class="back-link" data-view-link="runs">返回任务列表</button>
+                <h2>任务详情：零售 v1.4</h2>
+              </div>
               <span class="chip">200 个用例</span>
             </div>
             <div class="metric-grid">
@@ -338,7 +341,10 @@
         <section class="view" data-view="case-detail">
           <div class="panel full">
             <div class="panel-header">
-              <h2>用例详情：NL2SQL-014</h2>
+              <div class="panel-title-group">
+                <button class="back-link" data-view-link="case-list">返回用例列表</button>
+                <h2>用例详情：NL2SQL-014</h2>
+              </div>
               <span class="chip">智能问数</span>
             </div>
             <div class="meta-grid">

@@ -4,6 +4,7 @@ const typeSelect = document.querySelector("[data-case-type]");
 const typePanels = document.querySelectorAll("[data-type-panel]");
 const accordionGroups = document.querySelectorAll("[data-accordion]");
 const accordionToggles = document.querySelectorAll("[data-accordion-toggle]");
+const viewLinks = document.querySelectorAll("[data-view-link]");
 
 function activateView(target) {
   views.forEach((view) => {
@@ -23,6 +24,12 @@ function activateView(target) {
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     activateView(button.dataset.viewTarget);
+  });
+});
+
+viewLinks.forEach((link) => {
+  link.addEventListener("click", () => {
+    activateView(link.dataset.viewLink);
   });
 });
 
