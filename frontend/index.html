@@ -20,6 +20,8 @@
           <button class="nav-item primary-nav active" data-view-target="dashboard">总览</button>
           <button class="nav-item" data-view-target="runs">任务列表</button>
           <button class="nav-item" data-view-target="case-sets">用例集</button>
+          <button class="nav-item" data-view-target="env-config">环境配置</button>
+          <button class="nav-item" data-view-target="metric-sets">指标管理</button>
         </nav>
         <div class="sidebar-foot">
           <div class="status-dot"></div>
@@ -31,10 +33,6 @@
           <div>
             <div class="eyebrow">智能报告评测</div>
             <h1 class="title">质量一眼可见</h1>
-          </div>
-          <div class="topbar-actions">
-            <button class="ghost">导入用例</button>
-            <button class="primary">新建评测</button>
           </div>
         </header>
 
@@ -127,17 +125,48 @@
         <section class="view" data-view="runs">
           <div class="panel full">
             <div class="panel-header">
-              <h2>评测任务列表</h2>
-              <div class="filters">
-                <span class="chip">零售</span>
-                <span class="chip">最近 30 天</span>
-                <span class="chip">自动</span>
+              <div>
+                <h2>评测任务列表</h2>
+                <div class="filters">
+                  <label class="filter-label" for="run-case-set">用例集</label>
+                  <select class="filter-select" id="run-case-set">
+                    <option>全部</option>
+                    <option>零售 NL2SQL 基准</option>
+                    <option>零售 NL2CHART 基准</option>
+                    <option>智能问数 E2E</option>
+                    <option>报告多轮交互</option>
+                  </select>
+                </div>
+              </div>
+              <div class="panel-actions">
+                <button class="primary">新增评测</button>
               </div>
             </div>
             <table class="table">
               <thead>
                 <tr>
                   <th>任务</th>
+                  <th>用例集</th>
+                  <th>环境</th>
+                  <th>
+                    <div class="th-with-sort">
+                      <span>启动时间</span>
+                      <div class="sort-group">
+                        <button class="sort-btn active" type="button">↓</button>
+                        <button class="sort-btn" type="button">↑</button>
+                      </div>
+                    </div>
+                  </th>
+                  <th>
+                    <div class="th-with-sort">
+                      <span>结束时间</span>
+                      <div class="sort-group">
+                        <button class="sort-btn" type="button">↓</button>
+                        <button class="sort-btn" type="button">↑</button>
+                      </div>
+                    </div>
+                  </th>
+                  <th>指标参数集</th>
                   <th>模板 Top1</th>
                   <th>参数 F1</th>
                   <th>完成率</th>
@@ -148,6 +177,11 @@
               <tbody>
                 <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.4</td>
+                  <td>零售 NL2SQL 基准</td>
+                  <td>预发环境</td>
+                  <td>2026-03-16 10:12</td>
+                  <td>2026-03-16 10:20</td>
+                  <td>标准评测</td>
                   <td>0.92</td>
                   <td>0.81</td>
                   <td>0.76</td>
@@ -156,6 +190,11 @@
                 </tr>
                 <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.3</td>
+                  <td>零售 NL2CHART 基准</td>
+                  <td>预发环境</td>
+                  <td>2026-03-15 19:40</td>
+                  <td>2026-03-15 19:49</td>
+                  <td>标准评测</td>
                   <td>0.90</td>
                   <td>0.78</td>
                   <td>0.72</td>
@@ -164,6 +203,11 @@
                 </tr>
                 <tr class="row-link" data-view-link="run-detail">
                   <td>零售 v1.2</td>
+                  <td>智能问数 E2E</td>
+                  <td>生产环境</td>
+                  <td>2026-03-14 09:05</td>
+                  <td>2026-03-14 09:18</td>
+                  <td>严格评测</td>
                   <td>0.88</td>
                   <td>0.75</td>
                   <td>0.69</td>
@@ -178,11 +222,16 @@
         <section class="view" data-view="case-sets">
           <div class="panel full">
             <div class="panel-header">
-              <h2>用例集</h2>
-              <div class="filters">
-                <span class="chip">全部类型</span>
-                <span class="chip">零售</span>
-                <span class="chip">最近更新</span>
+              <div>
+                <h2>用例集</h2>
+                <div class="filters">
+                  <span class="chip">全部类型</span>
+                  <span class="chip">零售</span>
+                  <span class="chip">最近更新</span>
+                </div>
+              </div>
+              <div class="panel-actions">
+                <button class="ghost">导入用例</button>
               </div>
             </div>
             <div class="set-grid">
@@ -223,6 +272,78 @@
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="view" data-view="env-config">
+          <div class="panel full">
+            <div class="panel-header">
+              <h2>环境配置</h2>
+              <div class="panel-actions">
+                <button class="ghost">新增环境</button>
+                <button class="primary">编辑</button>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>环境名</th>
+                  <th>基础地址</th>
+                  <th>状态</th>
+                  <th>最近更新</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>预发环境</td>
+                  <td>https://staging.chatbi.local</td>
+                  <td>可用</td>
+                  <td>2026-03-16</td>
+                </tr>
+                <tr>
+                  <td>生产环境</td>
+                  <td>https://chatbi.example.com</td>
+                  <td>可用</td>
+                  <td>2026-03-15</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" data-view="metric-sets">
+          <div class="panel full">
+            <div class="panel-header">
+              <h2>评测指标管理</h2>
+              <div class="panel-actions">
+                <button class="ghost">新增参数组合</button>
+                <button class="primary">编辑</button>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>参数集名称</th>
+                  <th>描述</th>
+                  <th>覆盖指标/阈值</th>
+                  <th>最近更新</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>标准评测</td>
+                  <td>默认阈值与权重</td>
+                  <td>模板 0.9 / 参数 0.8</td>
+                  <td>2026-03-16</td>
+                </tr>
+                <tr>
+                  <td>严格评测</td>
+                  <td>偏向内容断言与完成度</td>
+                  <td>内容 0.9 / 完成度 0.85</td>
+                  <td>2026-03-14</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 

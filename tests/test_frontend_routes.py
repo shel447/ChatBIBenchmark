@@ -21,9 +21,16 @@ class FrontendRouteTests(unittest.TestCase):
         response = client.get("/frontend/")
         self.assertEqual(response.status_code, 200)
         self.assertIn("ChatBI 评测", response.text)
+        self.assertIn("环境配置", response.text)
+        self.assertIn("指标管理", response.text)
+        self.assertIn("导入用例", response.text)
+        self.assertIn("新增评测", response.text)
         self.assertIn("用例集", response.text)
         self.assertIn("用例列表", response.text)
         self.assertIn("用例详情", response.text)
+        self.assertIn("启动时间", response.text)
+        self.assertIn("结束时间", response.text)
+        self.assertIn("指标参数集", response.text)
 
 
 if __name__ == "__main__":
