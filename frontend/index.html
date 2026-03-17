@@ -140,7 +140,7 @@
                 </div>
               </div>
               <div class="panel-actions">
-                <button class="primary">新增评测</button>
+                <button class="primary" data-open-run-modal>新增评测</button>
               </div>
             </div>
             <table class="table">
@@ -688,6 +688,58 @@
           </div>
         </section>
       </main>
+    </div>
+    <div class="modal hidden" id="run-modal" role="dialog" aria-modal="true">
+      <div class="modal-backdrop" data-close-run-modal></div>
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>创建评测任务</h3>
+          <button class="modal-close" type="button" data-close-run-modal>×</button>
+        </div>
+        <form class="modal-body" id="run-form">
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="filter-label">任务名称</span>
+              <input class="filter-input" name="name" type="text" placeholder="例如：零售 v1.5" required />
+            </label>
+            <label class="form-field">
+              <span class="filter-label">用例集</span>
+              <select class="filter-select" name="case_set_id" required>
+                <option value="">请选择</option>
+                <option value="cs-nl2sql">零售 NL2SQL 基准</option>
+                <option value="cs-nl2chart">零售 NL2CHART 基准</option>
+                <option value="cs-e2e">智能问数 E2E</option>
+                <option value="cs-report">报告多轮交互</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="filter-label">环境</span>
+              <select class="filter-select" name="environment_id" required>
+                <option value="">请选择</option>
+                <option value="env-staging">预发环境</option>
+                <option value="env-prod">生产环境</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="filter-label">指标参数集</span>
+              <select class="filter-select" name="metric_set_id" required>
+                <option value="">请选择</option>
+                <option value="metric-default">标准评测</option>
+                <option value="metric-strict">严格评测</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="filter-label">用例集执行次数</span>
+              <input class="filter-input" name="repeat_count" type="number" min="1" value="1" required />
+            </label>
+          </div>
+          <div class="modal-error hidden" data-run-error>请填写所有必填项</div>
+          <div class="modal-footer">
+            <button class="ghost" type="button" data-close-run-modal>取消</button>
+            <button class="primary" type="submit" data-run-submit>创建并启动</button>
+          </div>
+        </form>
+      </div>
     </div>
     <script src="app.js"></script>
   </body>
