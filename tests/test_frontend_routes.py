@@ -38,12 +38,16 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertIn("创建并启动", response.text)
         self.assertIn("任务名称", response.text)
         self.assertIn("进度条", response.text)
+        self.assertIn("导出用例集", response.text)
+        self.assertIn("导出所选", response.text)
+        self.assertIn("更新用例集", response.text)
         self.assertIn("用例工具", response.text)
         self.assertIn("扩增用例集", response.text)
         self.assertIn("种子", response.text)
         self.assertIn("不可评测", response.text)
         self.assertNotIn("用例集与用例工具", response.text)
         self.assertNotIn("<h2>用例集</h2>", response.text)
+        self.assertNotIn("primary-nav", response.text)
 
 
 if __name__ == "__main__":

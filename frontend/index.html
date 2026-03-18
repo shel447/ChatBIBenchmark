@@ -17,7 +17,7 @@
           </div>
         </div>
         <nav class="nav">
-          <button class="nav-item primary-nav active" data-view-target="dashboard">总览</button>
+          <button class="nav-item active" data-view-target="dashboard">总览</button>
           <button class="nav-item" data-view-target="runs">任务列表</button>
           <button class="nav-item" data-view-target="case-sets">用例集</button>
           <button class="nav-item" data-view-target="env-config">环境配置</button>
@@ -239,8 +239,16 @@
                   <span class="chip">最近更新</span>
                 </div>
               </div>
-              <div class="panel-actions">
+              <div class="panel-actions" data-default-case-set-actions>
                 <button class="ghost">导入用例</button>
+                <button class="primary" type="button" data-enter-export-mode>导出用例集</button>
+              </div>
+            </div>
+            <div class="export-toolbar hidden" data-export-toolbar>
+              <div class="export-toolbar-meta">已选 <span data-export-count>0</span> 个用例集</div>
+              <div class="panel-actions">
+                <button class="primary" type="button" data-export-selected>导出所选</button>
+                <button class="ghost" type="button" data-cancel-export>取消</button>
               </div>
             </div>
             <div class="case-group">
@@ -249,7 +257,11 @@
                   <h3>用例集</h3>
                 </div>
                 <div class="set-grid">
-                  <div class="set-card card-link seed-set" data-view-link="case-list">
+                  <div class="set-card card-link seed-set" data-view-link="case-list" data-case-set-id="cs-seed" data-case-set-name="零售 种子用例集" data-case-set-type="NL2SQL">
+                    <label class="set-select">
+                      <input type="checkbox" data-case-set-check="cs-seed" />
+                      <span>选择</span>
+                    </label>
                     <div class="set-title">
                       零售 种子用例集
                       <span class="chip seed">种子</span>
@@ -264,7 +276,11 @@
                       <span class="chip">seed</span>
                     </div>
                   </div>
-                  <div class="set-card card-link" data-view-link="case-list">
+                  <div class="set-card card-link" data-view-link="case-list" data-case-set-id="cs-nl2sql" data-case-set-name="零售 NL2SQL 基准" data-case-set-type="NL2SQL">
+                    <label class="set-select">
+                      <input type="checkbox" data-case-set-check="cs-nl2sql" />
+                      <span>选择</span>
+                    </label>
                     <div class="set-title">零售 NL2SQL 基准</div>
                     <div class="set-meta">类型：NL2SQL · 120 用例</div>
                     <div class="set-desc">覆盖销量、GMV、客单价等核心指标问答。</div>
@@ -273,7 +289,11 @@
                       <span class="chip">retail</span>
                     </div>
                   </div>
-                  <div class="set-card card-link" data-view-link="case-list">
+                  <div class="set-card card-link" data-view-link="case-list" data-case-set-id="cs-nl2chart" data-case-set-name="零售 NL2CHART 基准" data-case-set-type="NL2CHART">
+                    <label class="set-select">
+                      <input type="checkbox" data-case-set-check="cs-nl2chart" />
+                      <span>选择</span>
+                    </label>
                     <div class="set-title">零售 NL2CHART 基准</div>
                     <div class="set-meta">类型：NL2CHART · 80 用例</div>
                     <div class="set-desc">重点评测图表类型匹配与指标选择。</div>
@@ -282,7 +302,11 @@
                       <span class="chip">visual</span>
                     </div>
                   </div>
-                  <div class="set-card card-link" data-view-link="case-list">
+                  <div class="set-card card-link" data-view-link="case-list" data-case-set-id="cs-smart-qa" data-case-set-name="智能问数 E2E" data-case-set-type="智能问数">
+                    <label class="set-select">
+                      <input type="checkbox" data-case-set-check="cs-smart-qa" />
+                      <span>选择</span>
+                    </label>
                     <div class="set-title">智能问数 E2E</div>
                     <div class="set-meta">类型：智能问数 · 60 用例</div>
                     <div class="set-desc">SQL + 图表联合评测，覆盖端到端体验。</div>
@@ -291,7 +315,11 @@
                       <span class="chip">e2e</span>
                     </div>
                   </div>
-                  <div class="set-card card-link" data-view-link="case-list">
+                  <div class="set-card card-link" data-view-link="case-list" data-case-set-id="cs-report" data-case-set-name="报告多轮交互" data-case-set-type="报告多轮交互">
+                    <label class="set-select">
+                      <input type="checkbox" data-case-set-check="cs-report" />
+                      <span>选择</span>
+                    </label>
                     <div class="set-title">报告多轮交互</div>
                     <div class="set-meta">类型：报告多轮交互 · 40 用例</div>
                     <div class="set-desc">模板选择、参数收集与内容断言。</div>
@@ -464,14 +492,19 @@
                   <span class="crumb-sep">/</span>
                   <span class="crumb-current">用例列表</span>
                 </div>
-                <h2>用例列表：零售 NL2SQL 基准</h2>
+                <h2 data-case-set-heading>用例列表：零售 NL2SQL 基准</h2>
               </div>
-              <div class="filters">
-                <span class="chip">NL2SQL</span>
-                <span class="chip">难度：中</span>
-                <span class="chip">状态：进行中</span>
+              <div class="panel-actions">
+                <button class="ghost" type="button" data-update-case-set>更新用例集</button>
+                <button class="primary" type="button" data-export-current-case-set>导出当前用例集</button>
               </div>
             </div>
+            <div class="filters">
+              <span class="chip" data-case-set-type-chip>NL2SQL</span>
+              <span class="chip" data-case-set-count-chip>2 个用例</span>
+              <span class="chip" data-case-set-status-chip>可导出</span>
+            </div>
+            <div class="case-set-feedback hidden" data-case-set-feedback></div>
             <table class="table">
               <thead>
                 <tr>
@@ -482,7 +515,7 @@
                   <th>得分</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody data-case-list-body>
                 <tr class="row-link" data-view-link="case-detail">
                   <td>NL2SQL-014</td>
                   <td>一月 GMV 汇总</td>
@@ -506,6 +539,7 @@
                 </tr>
               </tbody>
             </table>
+            <input class="hidden-file-input" data-case-set-file-input type="file" accept=".xlsx" />
           </div>
         </section>
 
@@ -708,7 +742,7 @@
                 <option value="">请选择</option>
                 <option value="cs-nl2sql">零售 NL2SQL 基准</option>
                 <option value="cs-nl2chart">零售 NL2CHART 基准</option>
-                <option value="cs-e2e">智能问数 E2E</option>
+                <option value="cs-smart-qa">智能问数 E2E</option>
                 <option value="cs-report">报告多轮交互</option>
               </select>
             </label>
