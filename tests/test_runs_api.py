@@ -15,7 +15,7 @@ class RunApiTests(unittest.TestCase):
             "name": "零售 v1.4",
             "case_set_id": "cs-001",
             "environment_id": "env-001",
-            "metric_set_id": "ms-001",
+            "metric_set_id": "metric-default",
             "repeat_count": 2,
         }
         with TestClient(app) as client:

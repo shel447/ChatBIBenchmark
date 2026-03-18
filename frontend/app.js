@@ -5,6 +5,8 @@ const typePanels = document.querySelectorAll("[data-type-panel]");
 
 const taskModal = document.getElementById("run-modal");
 const taskForm = document.getElementById("run-form");
+const taskCaseSetSelect = document.querySelector("[data-task-case-set-select]");
+const taskMetricSelect = document.querySelector("[data-task-metric-select]");
 const openTaskModalButton = document.querySelector("[data-open-run-modal]");
 const closeTaskModalButtons = document.querySelectorAll("[data-close-run-modal]");
 const taskError = document.querySelector("[data-run-error]");
@@ -60,6 +62,35 @@ const updateCaseSetButton = document.querySelector("[data-update-case-set]");
 const exportCurrentCaseSetButton = document.querySelector("[data-export-current-case-set]");
 const caseSetFileInput = document.querySelector("[data-case-set-file-input]");
 
+const metricSummaryCount = document.querySelector("[data-metric-summary-count]");
+const metricSummaryScenarios = document.querySelector("[data-metric-summary-scenarios]");
+const metricSummaryHardGates = document.querySelector("[data-metric-summary-hard-gates]");
+const metricFilterButtons = document.querySelectorAll("[data-metric-filter]");
+const metricSetList = document.querySelector("[data-metric-set-list]");
+const metricSetDetail = document.querySelector("[data-metric-set-detail]");
+const metricDetailName = document.querySelector("[data-metric-detail-name]");
+const metricDetailScenario = document.querySelector("[data-metric-detail-scenario]");
+const metricDetailThreshold = document.querySelector("[data-metric-detail-threshold]");
+const metricDetailDescription = document.querySelector("[data-metric-detail-description]");
+const metricDetailFormula = document.querySelector("[data-metric-detail-formula]");
+const metricDetailHardGateCount = document.querySelector("[data-metric-detail-hard-gate-count]");
+const metricBenchmarkList = document.querySelector("[data-metric-benchmark-list]");
+const metricDimensionBody = document.querySelector("[data-metric-dimension-body]");
+const openMetricModalButton = document.querySelector("[data-open-metric-modal]");
+const editMetricSetButton = document.querySelector("[data-edit-metric-set]");
+const metricModal = document.getElementById("metric-modal");
+const metricForm = document.getElementById("metric-form");
+const closeMetricModalButtons = document.querySelectorAll("[data-close-metric-modal]");
+const metricModalTitle = document.querySelector("[data-metric-modal-title]");
+const metricTemplateSelect = document.querySelector("[data-metric-template-select]");
+const metricFormName = document.querySelector("[data-metric-form-name]");
+const metricFormScenario = document.querySelector("[data-metric-form-scenario]");
+const metricFormDescription = document.querySelector("[data-metric-form-description]");
+const metricFormThreshold = document.querySelector("[data-metric-form-threshold]");
+const metricEditBody = document.querySelector("[data-metric-edit-body]");
+const metricError = document.querySelector("[data-metric-error]");
+const metricSubmitButton = document.querySelector("[data-metric-submit]");
+
 const difficultyLabels = ["低", "中", "高"];
 const launchModeLabels = { immediate: "立即执行", deferred: "待执行" };
 const taskStatusLabels = { pending: "待执行", scheduled: "已定时", running: "执行中", succeeded: "已完成", failed: "失败" };
@@ -81,6 +112,18 @@ let tasksState = [];
 let schedulesState = [];
 let currentTaskId = null;
 let currentTaskDetail = null;
+let metricSetsState = [];
+let currentMetricSetId = "metric-nl2sql-exec";
+let currentMetricFilter = "全部";
+let metricModalMode = "create";
+
+const caseSetTypeMap = {
+  "cs-seed": "NL2SQL",
+  "cs-nl2sql": "NL2SQL",
+  "cs-nl2chart": "NL2CHART",
+  "cs-smart-qa": "智能问数",
+  "cs-report": "报告多轮交互",
+};
 
 function activateView(target) {
   views.forEach((view) => {
@@ -166,6 +209,7 @@ function openTaskModal() {
   if (!taskModal) {
     return;
   }
+  populateTaskMetricOptions(taskCaseSetSelect?.value || "cs-nl2sql");
   taskModal.classList.remove("hidden");
   if (taskError) {
     taskError.classList.add("hidden");
@@ -368,6 +412,26 @@ async function fetchCaseSetDetail(caseSetId) {
   return requestJson(`/api/case-sets/${encodeURIComponent(caseSetId)}`);
 }
 
+async function fetchMetricSets() {
+  return requestJson("/api/metric-sets");
+}
+
+async function createMetricSet(payload) {
+  return requestJson("/api/metric-sets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
+async function updateMetricSet(metricSetId, payload) {
+  return requestJson(`/api/metric-sets/${encodeURIComponent(metricSetId)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
 async function importCaseSetFile(caseSetId, file) {
   const formData = new FormData();
   formData.append("file", file);
@@ -477,6 +541,244 @@ function populateScheduleTaskOptions() {
     .join("");
 }
 
+function getMetricSetById(metricSetId) {
+  return metricSetsState.find((item) => item.metric_set_id === metricSetId) || null;
+}
+
+function countHardGates(metricSet) {
+  return (metricSet?.dimensions || []).filter((item) => item.hard_gate).length;
+}
+
+function scenarioMatchesFilter(metricSet) {
+  return currentMetricFilter === "全部" || metricSet.scenario_type === currentMetricFilter;
+}
+
+function renderMetricSummaries(metricSets) {
+  if (metricSummaryCount) {
+    metricSummaryCount.textContent = String(metricSets.length);
+  }
+  if (metricSummaryScenarios) {
+    const scenarioCount = new Set(metricSets.map((item) => item.scenario_type)).size;
+    metricSummaryScenarios.textContent = String(scenarioCount);
+  }
+  if (metricSummaryHardGates) {
+    const totalHardGates = metricSets.reduce((sum, item) => sum + countHardGates(item), 0);
+    metricSummaryHardGates.textContent = String(totalHardGates);
+  }
+}
+
+function renderMetricSetList(metricSets) {
+  if (!metricSetList) {
+    return;
+  }
+  if (metricSets.length === 0) {
+    metricSetList.innerHTML = '<div class="metric-empty">当前筛选条件下暂无指标参数集</div>';
+    return;
+  }
+  metricSetList.innerHTML = metricSets
+    .map(
+      (metricSet) => `
+        <button class="metric-set-card ${metricSet.metric_set_id === currentMetricSetId ? "active" : ""}" type="button" data-metric-set-card="${escapeHtml(metricSet.metric_set_id)}">
+          <div class="metric-set-card-top">
+            <span class="chip">${escapeHtml(metricSet.scenario_type)}</span>
+            <span class="metric-score-chip">门槛 ${escapeHtml(Number(metricSet.pass_threshold).toFixed(2))}</span>
+          </div>
+          <div class="metric-set-card-title">${escapeHtml(metricSet.name)}</div>
+          <div class="metric-set-card-desc">${escapeHtml(metricSet.description)}</div>
+        </button>
+      `,
+    )
+    .join("");
+}
+
+function renderMetricSetDetail(metricSet) {
+  if (!metricSetDetail || !metricSet) {
+    return;
+  }
+  if (metricDetailName) {
+    metricDetailName.textContent = metricSet.name;
+  }
+  if (metricDetailScenario) {
+    metricDetailScenario.textContent = metricSet.scenario_type;
+  }
+  if (metricDetailThreshold) {
+    metricDetailThreshold.textContent = `发布门槛 ${Number(metricSet.pass_threshold).toFixed(2)}`;
+  }
+  if (metricDetailDescription) {
+    metricDetailDescription.textContent = metricSet.description;
+  }
+  if (metricDetailFormula) {
+    metricDetailFormula.textContent = metricSet.score_formula;
+  }
+  if (metricDetailHardGateCount) {
+    metricDetailHardGateCount.textContent = String(countHardGates(metricSet));
+  }
+  if (metricBenchmarkList) {
+    metricBenchmarkList.innerHTML = (metricSet.benchmark_refs || [])
+      .map(
+        (item) => `
+          <a class="metric-benchmark-item" href="${escapeHtml(item.url || "#")}" target="_blank" rel="noreferrer">
+            <strong>${escapeHtml(item.title || "-")}</strong>
+            <span>${escapeHtml(item.note || "")}</span>
+          </a>
+        `,
+      )
+      .join("");
+  }
+  if (metricDimensionBody) {
+    metricDimensionBody.innerHTML = (metricSet.dimensions || [])
+      .map(
+        (item) => `
+          <tr>
+            <td>${escapeHtml(item.name)}</td>
+            <td>${escapeHtml(item.measurement)}</td>
+            <td>${escapeHtml(Number(item.weight).toFixed(2))}</td>
+            <td>${escapeHtml(Number(item.target).toFixed(2))}</td>
+            <td>${escapeHtml(item.hard_gate ? "是" : "否")}</td>
+            <td>${escapeHtml(item.business_value)}</td>
+          </tr>
+        `,
+      )
+      .join("");
+  }
+}
+
+function refreshMetricPage() {
+  const filteredMetricSets = metricSetsState.filter(scenarioMatchesFilter);
+  if (!filteredMetricSets.some((item) => item.metric_set_id === currentMetricSetId)) {
+    currentMetricSetId = filteredMetricSets[0]?.metric_set_id || null;
+  }
+  renderMetricSummaries(metricSetsState);
+  renderMetricSetList(filteredMetricSets);
+  renderMetricSetDetail(getMetricSetById(currentMetricSetId));
+}
+
+function buildMetricEditRows(dimensions) {
+  if (!metricEditBody) {
+    return;
+  }
+  metricEditBody.innerHTML = (dimensions || [])
+    .map(
+      (item) => `
+        <tr data-metric-dimension-row="${escapeHtml(item.key)}">
+          <td>
+            <span class="metric-edit-label">${escapeHtml(item.name)}</span>
+            <div class="metric-inline-meta">${escapeHtml(item.key)}</div>
+          </td>
+          <td>${escapeHtml(item.measurement)}</td>
+          <td>
+            <input class="filter-input" type="number" step="0.01" min="0" value="${escapeHtml(item.weight)}" data-dimension-field="weight" />
+          </td>
+          <td>
+            <input class="filter-input" type="number" step="0.01" min="0" max="1" value="${escapeHtml(item.target)}" data-dimension-field="target" />
+          </td>
+          <td>
+            <input type="checkbox" ${item.hard_gate ? "checked" : ""} data-dimension-field="hard_gate" />
+            <div class="metric-edit-help">${escapeHtml(item.business_value)}</div>
+          </td>
+        </tr>
+      `,
+    )
+    .join("");
+}
+
+function readMetricDimensionsFromForm(baseMetricSet) {
+  return (baseMetricSet?.dimensions || []).map((item) => {
+    const row = metricEditBody?.querySelector(`[data-metric-dimension-row="${CSS.escape(item.key)}"]`);
+    const weightInput = row?.querySelector('[data-dimension-field="weight"]');
+    const targetInput = row?.querySelector('[data-dimension-field="target"]');
+    const hardGateInput = row?.querySelector('[data-dimension-field="hard_gate"]');
+    return {
+      ...item,
+      weight: Number.parseFloat(weightInput?.value || String(item.weight)),
+      target: Number.parseFloat(targetInput?.value || String(item.target)),
+      hard_gate: Boolean(hardGateInput?.checked),
+    };
+  });
+}
+
+function populateMetricTemplateOptions() {
+  if (!metricTemplateSelect) {
+    return;
+  }
+  metricTemplateSelect.innerHTML = metricSetsState
+    .map((item) => `<option value="${escapeHtml(item.metric_set_id)}">${escapeHtml(item.name)}</option>`)
+    .join("");
+}
+
+function populateTaskMetricOptions(caseSetId) {
+  if (!taskMetricSelect) {
+    return;
+  }
+  const caseSetType = caseSetTypeMap[caseSetId] || null;
+  const availableMetricSets = metricSetsState.filter((item) => !caseSetType || item.scenario_type === "通用" || item.scenario_type === caseSetType);
+  taskMetricSelect.innerHTML = '<option value="">请选择</option>' + availableMetricSets
+    .map((item) => `<option value="${escapeHtml(item.metric_set_id)}">${escapeHtml(item.name)}</option>`)
+    .join("");
+  if (availableMetricSets.length > 0) {
+    taskMetricSelect.value = availableMetricSets[0].metric_set_id;
+  }
+}
+
+function openMetricModal(mode = "create") {
+  if (!metricModal) {
+    return;
+  }
+  metricModalMode = mode;
+  const currentMetricSet = getMetricSetById(currentMetricSetId) || metricSetsState[0] || null;
+  if (metricModalTitle) {
+    metricModalTitle.textContent = mode === "edit" ? "编辑参数组合" : "新增参数组合";
+  }
+  if (metricError) {
+    metricError.classList.add("hidden");
+  }
+  populateMetricTemplateOptions();
+  const seedMetricSet = mode === "edit" ? currentMetricSet : currentMetricSet;
+  if (metricTemplateSelect && seedMetricSet) {
+    metricTemplateSelect.value = seedMetricSet.metric_set_id;
+    metricTemplateSelect.disabled = mode === "edit";
+  }
+  if (metricFormName && seedMetricSet) {
+    metricFormName.value = mode === "edit" ? seedMetricSet.name : `${seedMetricSet.name} - 自定义`;
+  }
+  if (metricFormScenario && seedMetricSet) {
+    metricFormScenario.value = seedMetricSet.scenario_type;
+  }
+  if (metricFormDescription && seedMetricSet) {
+    metricFormDescription.value = seedMetricSet.description;
+  }
+  if (metricFormThreshold && seedMetricSet) {
+    metricFormThreshold.value = String(seedMetricSet.pass_threshold);
+  }
+  buildMetricEditRows(seedMetricSet?.dimensions || []);
+  metricModal.classList.remove("hidden");
+}
+
+function closeMetricModal() {
+  if (!metricModal) {
+    return;
+  }
+  metricModal.classList.add("hidden");
+  if (metricForm) {
+    metricForm.reset();
+  }
+  if (metricError) {
+    metricError.classList.add("hidden");
+    metricError.textContent = "请填写所有必填项";
+  }
+  if (metricTemplateSelect) {
+    metricTemplateSelect.disabled = false;
+  }
+}
+
+function showMetricError(message) {
+  if (!metricError) {
+    return;
+  }
+  metricError.textContent = message;
+  metricError.classList.remove("hidden");
+}
+
 function renderTasks(tasks) {
   if (!taskTableBody) {
     return;
@@ -500,7 +802,7 @@ function renderTasks(tasks) {
           <td>${statusChip(task.task_status, taskStatusLabels)}</td>
           <td>${escapeHtml(task.case_set_id)}</td>
           <td>${escapeHtml(task.environment_id)}</td>
-          <td>${escapeHtml(task.metric_set_id)}</td>
+          <td>${escapeHtml(task.metric_set?.name || task.metric_set_id)}</td>
           <td>${escapeHtml(task.schedule?.name || "-")}</td>
           <td>${escapeHtml(progress.lastRunTime)}</td>
           <td>${renderProgressCell(latestExecution)}</td>
@@ -541,7 +843,7 @@ function renderSchedules(schedules) {
 
 function renderTaskDetail(detail) {
   currentTaskDetail = detail;
-  const { task, latest_execution: latestExecution, execution_history: history, schedule } = detail;
+  const { task, latest_execution: latestExecution, execution_history: history, schedule, metric_set: metricSet } = detail;
   const progress = progressMeta(latestExecution);
   if (taskDetailHeading) {
     taskDetailHeading.textContent = `任务详情：${task.name}`;
@@ -562,7 +864,7 @@ function renderTaskDetail(detail) {
     taskDetailEnvironment.textContent = task.environment_id;
   }
   if (taskDetailMetricSet) {
-    taskDetailMetricSet.textContent = task.metric_set_id;
+    taskDetailMetricSet.textContent = metricSet?.name || task.metric_set_id;
   }
   if (taskDetailScheduleName) {
     taskDetailScheduleName.textContent = schedule?.name || "未关联";
@@ -672,6 +974,20 @@ async function loadSchedules() {
   }
 }
 
+async function loadMetricSets() {
+  try {
+    const payload = await fetchMetricSets();
+    metricSetsState = payload.metric_sets || [];
+    refreshMetricPage();
+    populateMetricTemplateOptions();
+    populateTaskMetricOptions(taskCaseSetSelect?.value || "cs-nl2sql");
+  } catch (error) {
+    if (metricSetList) {
+      metricSetList.innerHTML = '<div class="metric-empty">指标集加载失败，请稍后重试</div>';
+    }
+  }
+}
+
 async function loadTaskDetail(taskId) {
   currentTaskId = taskId;
   try {
@@ -709,6 +1025,13 @@ navButtons.forEach((button) => {
 });
 
 document.addEventListener("click", (event) => {
+  const metricCard = event.target.closest("[data-metric-set-card]");
+  if (metricCard) {
+    currentMetricSetId = metricCard.dataset.metricSetCard || null;
+    refreshMetricPage();
+    return;
+  }
+
   const link = event.target.closest("[data-view-link]");
   if (!link) {
     return;
@@ -756,6 +1079,22 @@ document.addEventListener("change", (event) => {
   }
   if (target === scheduleTypeSelect) {
     syncScheduleTypeFields(target.value);
+  }
+  if (target === taskCaseSetSelect) {
+    populateTaskMetricOptions(target.value);
+  }
+  if (target === metricTemplateSelect && metricModalMode === "create") {
+    const templateMetricSet = getMetricSetById(target.value);
+    if (metricFormScenario && templateMetricSet) {
+      metricFormScenario.value = templateMetricSet.scenario_type;
+    }
+    if (metricFormDescription && templateMetricSet) {
+      metricFormDescription.value = templateMetricSet.description;
+    }
+    if (metricFormThreshold && templateMetricSet) {
+      metricFormThreshold.value = String(templateMetricSet.pass_threshold);
+    }
+    buildMetricEditRows(templateMetricSet?.dimensions || []);
   }
 });
 
@@ -839,6 +1178,96 @@ if (exportCurrentCaseSetButton) {
     } finally {
       exportCurrentCaseSetButton.disabled = false;
       exportCurrentCaseSetButton.textContent = originalText;
+    }
+  });
+}
+
+metricFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    currentMetricFilter = button.dataset.metricFilter || "全部";
+    metricFilterButtons.forEach((item) => item.classList.toggle("active", item === button));
+    refreshMetricPage();
+  });
+});
+
+if (openMetricModalButton) {
+  openMetricModalButton.addEventListener("click", () => {
+    openMetricModal("create");
+  });
+}
+
+if (editMetricSetButton) {
+  editMetricSetButton.addEventListener("click", () => {
+    openMetricModal("edit");
+  });
+}
+
+if (closeMetricModalButtons.length) {
+  closeMetricModalButtons.forEach((button) => {
+    button.addEventListener("click", closeMetricModal);
+  });
+}
+
+if (metricForm) {
+  metricForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const activeMetricSet = metricModalMode === "edit"
+      ? getMetricSetById(currentMetricSetId)
+      : getMetricSetById(metricTemplateSelect?.value || currentMetricSetId);
+    const name = String(metricFormName?.value || "").trim();
+    const scenarioType = String(metricFormScenario?.value || "").trim();
+    const description = String(metricFormDescription?.value || "").trim();
+    const passThreshold = Number.parseFloat(String(metricFormThreshold?.value || "").trim());
+
+    if (!activeMetricSet || !name || !scenarioType || Number.isNaN(passThreshold)) {
+      showMetricError("请填写所有必填项");
+      return;
+    }
+
+    if (metricSubmitButton) {
+      metricSubmitButton.disabled = true;
+    }
+    const originalText = metricSubmitButton?.textContent || "保存参数组合";
+    if (metricSubmitButton) {
+      metricSubmitButton.textContent = "保存中...";
+    }
+
+    try {
+      const dimensions = readMetricDimensionsFromForm(activeMetricSet);
+      if (metricModalMode === "edit") {
+        await updateMetricSet(activeMetricSet.metric_set_id, {
+          name,
+          description,
+          pass_threshold: passThreshold,
+          dimensions,
+        });
+        currentMetricSetId = activeMetricSet.metric_set_id;
+      } else {
+        const response = await createMetricSet({
+          name,
+          scenario_type: scenarioType,
+          description,
+          score_formula: activeMetricSet.score_formula,
+          pass_threshold: passThreshold,
+          dimensions,
+          benchmark_refs: activeMetricSet.benchmark_refs,
+        });
+        currentMetricSetId = response.metric_set.metric_set_id;
+      }
+      await loadMetricSets();
+      await loadTasks();
+      if (currentTaskId) {
+        await loadTaskDetail(currentTaskId);
+      }
+      closeMetricModal();
+      activateView("metric-sets");
+    } catch (error) {
+      showMetricError(error instanceof Error ? error.message : "保存失败，请稍后重试");
+    } finally {
+      if (metricSubmitButton) {
+        metricSubmitButton.disabled = false;
+        metricSubmitButton.textContent = originalText;
+      }
     }
   });
 }
@@ -990,5 +1419,6 @@ activateView("dashboard");
 setExportMode(false);
 syncScheduleTypeFields(scheduleTypeSelect?.value || "one_time");
 void loadCaseSetDetail(currentCaseSetId);
+void loadMetricSets();
 void loadTasks();
 void loadSchedules();

@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from .adapters.sqlite_adapter import SQLiteAdapter
 from .core.evaluator import evaluate_report_case
 from .core.usecases.case_set_usecases import export_case_set, get_case_set_detail, import_case_set, list_case_sets
+from .core.usecases.metric_set_usecases import create_metric_set, get_metric_set, list_metric_sets, update_metric_set
 from .core.usecases.run_usecases import get_run, list_runs
 from .core.usecases.schedule_usecases import (
     DEFAULT_TIMEZONE,
@@ -22,7 +23,13 @@ from .core.usecases.schedule_usecases import (
 )
 from .core.usecases.task_usecases import create_task, execute_task, get_task, list_task_executions, list_tasks
 from .storage.case_set_repository import SqliteCaseSetRepository, init_case_set_db
-from .storage.run_repository import SqliteRunRepository, SqliteScheduleRepository, SqliteTaskRepository, init_run_db
+from .storage.run_repository import (
+    SqliteMetricSetRepository,
+    SqliteRunRepository,
+    SqliteScheduleRepository,
+    SqliteTaskRepository,
+    init_run_db,
+)
 from .storage.sqlite_store import init_db, save_case_result, save_run
 
 APP_DIR = os.path.dirname(__file__)
@@ -55,6 +62,21 @@ def _task_to_dict(task):
         "created_at": task.created_at,
         "updated_at": task.updated_at,
         "latest_execution_id": task.latest_execution_id,
+    }
+
+
+def _metric_set_to_dict(metric_set):
+    return {
+        "metric_set_id": metric_set.metric_set_id,
+        "name": metric_set.name,
+        "scenario_type": metric_set.scenario_type,
+        "description": metric_set.description,
+        "score_formula": metric_set.score_formula,
+        "pass_threshold": metric_set.pass_threshold,
+        "dimensions": metric_set.dimensions,
+        "benchmark_refs": metric_set.benchmark_refs,
+        "created_at": metric_set.created_at,
+        "updated_at": metric_set.updated_at,
     }
 
 
@@ -105,14 +127,35 @@ def _get_schedule_summary_for_task(task_id: str):
     return None
 
 
+def _get_metric_set_summary(metric_set_id: str):
+    metric_repo = SqliteMetricSetRepository(DEFAULT_RUN_DB)
+    metric_set = metric_repo.get(metric_set_id)
+    if not metric_set:
+        return None
+    return {
+        "metric_set_id": metric_set.metric_set_id,
+        "name": metric_set.name,
+        "scenario_type": metric_set.scenario_type,
+    }
+
+
 def _build_task_payload(task):
     run_repo = SqliteRunRepository(DEFAULT_RUN_DB)
     latest_execution = run_repo.get(task.latest_execution_id) if task.latest_execution_id else None
     return {
         **_task_to_dict(task),
+        "metric_set": _get_metric_set_summary(task.metric_set_id),
         "latest_execution": _run_to_dict(latest_execution) if latest_execution else None,
         "schedule": _get_schedule_summary_for_task(task.task_id),
     }
+
+
+def _require_metric_set(metric_set_id: str):
+    metric_repo = SqliteMetricSetRepository(DEFAULT_RUN_DB)
+    metric_set = metric_repo.get(metric_set_id)
+    if not metric_set:
+        raise HTTPException(status_code=400, detail="metric_set not found")
+    return metric_set
 
 
 def _scheduler_loop(stop_event: threading.Event):
@@ -207,6 +250,63 @@ async def import_case_set_api(case_set_id: str, file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
+@app.get("/api/metric-sets")
+async def list_metric_sets_api():
+    repo = SqliteMetricSetRepository(DEFAULT_RUN_DB)
+    return {"metric_sets": list_metric_sets(repo)}
+
+
+@app.get("/api/metric-sets/{metric_set_id}")
+async def get_metric_set_api(metric_set_id: str):
+    repo = SqliteMetricSetRepository(DEFAULT_RUN_DB)
+    metric_set = get_metric_set(repo, metric_set_id)
+    if not metric_set:
+        raise HTTPException(status_code=404, detail="metric_set not found")
+    return {"metric_set": metric_set}
+
+
+@app.post("/api/metric-sets")
+async def create_metric_set_api(request: Request):
+    payload = await request.json()
+    repo = SqliteMetricSetRepository(DEFAULT_RUN_DB)
+    try:
+        metric_set = create_metric_set(
+            repo,
+            payload["name"],
+            payload["scenario_type"],
+            payload["description"],
+            payload.get("score_formula", "weighted_sum_with_gates"),
+            payload["pass_threshold"],
+            payload["dimensions"],
+            payload.get("benchmark_refs", []),
+        )
+    except KeyError as exc:
+        raise HTTPException(status_code=400, detail=f"{exc.args[0]} is required") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"metric_set": metric_set}
+
+
+@app.patch("/api/metric-sets/{metric_set_id}")
+async def update_metric_set_api(metric_set_id: str, request: Request):
+    payload = await request.json()
+    repo = SqliteMetricSetRepository(DEFAULT_RUN_DB)
+    try:
+        metric_set = update_metric_set(
+            repo,
+            metric_set_id,
+            name=payload.get("name"),
+            description=payload.get("description"),
+            pass_threshold=payload.get("pass_threshold"),
+            dimensions=payload.get("dimensions"),
+        )
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"metric_set": metric_set}
+
+
 @app.post("/api/tasks")
 async def create_task_api(request: Request):
     payload = await request.json()
@@ -214,6 +314,7 @@ async def create_task_api(request: Request):
     for field in required_fields:
         if field not in payload:
             raise HTTPException(status_code=400, detail=f"{field} is required")
+    _require_metric_set(payload["metric_set_id"])
 
     task_repo = SqliteTaskRepository(DEFAULT_RUN_DB)
     run_repo = SqliteRunRepository(DEFAULT_RUN_DB)
@@ -230,7 +331,7 @@ async def create_task_api(request: Request):
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    response = {"task": _task_to_dict(task)}
+    response = {"task": _task_to_dict(task), "metric_set": _get_metric_set_summary(task.metric_set_id)}
     if latest_execution:
         response["latest_execution"] = _run_to_dict(latest_execution)
     return response
@@ -252,6 +353,7 @@ async def get_task_api(task_id: str):
     latest_execution = run_repo.get(task.latest_execution_id) if task.latest_execution_id else None
     return {
         "task": _task_to_dict(task),
+        "metric_set": _get_metric_set_summary(task.metric_set_id),
         "schedule": _get_schedule_summary_for_task(task_id),
         "latest_execution": _run_to_dict(latest_execution) if latest_execution else None,
         "execution_history": [_run_to_dict(run) for run in list_task_executions(run_repo, task_id)],
@@ -268,7 +370,7 @@ async def execute_task_api(task_id: str):
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return {"task": _task_to_dict(task), "run": _run_to_dict(run)}
+    return {"task": _task_to_dict(task), "metric_set": _get_metric_set_summary(task.metric_set_id), "run": _run_to_dict(run)}
 
 
 @app.post("/api/runs")
@@ -278,6 +380,7 @@ async def create_run_api(request: Request):
     for field in required_fields:
         if field not in payload:
             raise HTTPException(status_code=400, detail=f"{field} is required")
+    _require_metric_set(payload["metric_set_id"])
 
     task_repo = SqliteTaskRepository(DEFAULT_RUN_DB)
     run_repo = SqliteRunRepository(DEFAULT_RUN_DB)
