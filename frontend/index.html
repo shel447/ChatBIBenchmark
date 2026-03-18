@@ -811,116 +811,115 @@
                   <span class="crumb-sep">/</span>
                   <span class="crumb-current">用例详情</span>
                 </div>
-                <h2>用例详情：NL2SQL-014</h2>
+                <h2 data-case-detail-heading>用例详情：NL2SQL-014</h2>
               </div>
-              <span class="chip">智能问数</span>
+              <span class="chip" data-case-detail-type-chip>NL2SQL</span>
             </div>
             <div class="meta-grid">
               <div class="meta-item">
                 <div class="meta-label">用例集</div>
-                <div class="meta-value">零售 NL2SQL 基准</div>
+                <div class="meta-value" data-case-detail-case-set>零售 NL2SQL 基准</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">用例ID</div>
+                <div class="meta-value" data-case-detail-case-id>NL2SQL-014</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">标题</div>
+                <div class="meta-value" data-case-detail-title>一月 GMV 汇总</div>
               </div>
               <div class="meta-item">
                 <div class="meta-label">类型</div>
-                <div class="meta-value">智能问数</div>
+                <div class="meta-value" data-case-detail-type>NL2SQL</div>
               </div>
               <div class="meta-item">
                 <div class="meta-label">难度</div>
-                <div class="meta-value">中</div>
+                <div class="meta-value" data-case-detail-difficulty>低</div>
               </div>
               <div class="meta-item">
                 <div class="meta-label">状态</div>
-                <div class="meta-value">失败</div>
-              </div>
-              <div class="meta-item">
-                <div class="meta-label">得分</div>
-                <div class="meta-value">0.62</div>
-              </div>
-              <div class="meta-item">
-                <div class="meta-label">更新时间</div>
-                <div class="meta-value">2026-03-16</div>
+                <div class="meta-value" data-case-detail-status>待评测</div>
               </div>
             </div>
 
             <div class="panel subtle">
               <div class="panel-header">
-                <h3>类型面板</h3>
-                <select class="type-select" data-case-type>
-                  <option value="smart-qa">智能问数</option>
-                  <option value="nl2sql">NL2SQL</option>
-                  <option value="nl2chart">NL2CHART</option>
-                  <option value="report-multi">报告多轮交互</option>
-                </select>
+                <h3 data-case-detail-panel-heading>NL2SQL 详情</h3>
               </div>
               <div class="type-panels">
-                <div class="type-panel active" data-type-panel="smart-qa">
-                  <div class="case-grid">
-                    <div>
-                      <h3>SQL 产物</h3>
-                      <div class="code-box">question：一月 GMV 与订单数</div>
-                      <div class="code-box">expected_sql：SELECT ...</div>
-                      <div class="code-box">result_diff：2 行不一致</div>
+                <div class="type-panel" data-type-panel="smart-qa">
+                  <div class="detail-stack">
+                    <div class="meta-item">
+                      <div class="meta-label">问题</div>
+                      <div class="meta-value" data-case-detail-smart-question>展示本月 GMV 趋势并给出趋势图。</div>
                     </div>
-                    <div>
-                      <h3>图表产物</h3>
-                      <div class="code-box">chart_type：line</div>
-                      <div class="code-box">expected_metrics：gmv, orders</div>
-                      <div class="code-box">spec_diff：缺少 y2 轴</div>
+                    <div class="meta-item">
+                      <div class="meta-label">标准 SQL</div>
+                      <div class="code-box preformatted" data-case-detail-smart-sql>SELECT day, SUM(gmv) AS gmv FROM retail_sales GROUP BY day</div>
+                    </div>
+                    <div class="meta-item">
+                      <div class="meta-label">标准图表类型</div>
+                      <div class="meta-value" data-case-detail-smart-chart-type>line</div>
                     </div>
                   </div>
                 </div>
 
-                <div class="type-panel" data-type-panel="nl2sql">
-                  <div class="case-grid">
-                    <div>
-                      <h3>问题与 SQL</h3>
-                      <div class="bubble">用户：汇总一月 GMV 与订单数。</div>
-                      <div class="code-box">expected_sql：SELECT ...</div>
-                      <div class="code-box">sql_dialect：postgres</div>
+                <div class="type-panel active" data-type-panel="nl2sql">
+                  <div class="detail-stack">
+                    <div class="meta-item">
+                      <div class="meta-label">问题</div>
+                      <div class="meta-value" data-case-detail-nl2sql-question>统计一月 GMV 汇总。</div>
                     </div>
-                    <div>
-                      <h3>结果集对比</h3>
-                      <div class="code-box">hash_expected：9a12f3</div>
-                      <div class="code-box">hash_actual：a01c7b</div>
-                      <div class="code-box">diff：订单数偏差 2.1%</div>
+                    <div class="meta-item">
+                      <div class="meta-label">标准 SQL</div>
+                      <div class="code-box preformatted" data-case-detail-nl2sql-sql>SELECT SUM(gmv) FROM retail_sales WHERE month = '2026-01'</div>
                     </div>
                   </div>
                 </div>
 
                 <div class="type-panel" data-type-panel="nl2chart">
-                  <div class="case-grid">
-                    <div>
-                      <h3>图表规范</h3>
-                      <div class="code-box">chart_type：bar</div>
-                      <div class="code-box">expected_metrics：gmv</div>
-                      <div class="code-box">dimensions：region</div>
+                  <div class="detail-stack">
+                    <div class="meta-item">
+                      <div class="meta-label">问题</div>
+                      <div class="meta-value" data-case-detail-nl2chart-question>生成月度订单趋势图。</div>
                     </div>
-                    <div>
-                      <h3>规范差异</h3>
-                      <div class="code-box">spec_diff：维度缺失</div>
-                      <div class="code-box">preview：空态</div>
+                    <div class="meta-item">
+                      <div class="meta-label">SQL</div>
+                      <div class="code-box preformatted" data-case-detail-nl2chart-sql>SELECT month, SUM(orders) AS orders FROM retail_sales GROUP BY month</div>
+                    </div>
+                    <div class="meta-item">
+                      <div class="meta-label">标准图表类型</div>
+                      <div class="meta-value" data-case-detail-nl2chart-chart-type>line</div>
                     </div>
                   </div>
                 </div>
 
                 <div class="type-panel" data-type-panel="report-multi">
-                  <div class="case-grid">
-                    <div>
-                      <h3>多轮对话</h3>
-                      <div class="bubble">用户：生成一月经营报告。</div>
-                      <div class="bubble">助手：需要哪个指标？</div>
-                      <div class="bubble">用户：GMV 和订单数。</div>
+                  <div class="detail-stack">
+                    <div class="meta-item">
+                      <div class="meta-label">用户目标</div>
+                      <div class="meta-value" data-case-detail-report-user-goal>生成一月经营报告</div>
                     </div>
-                    <div>
-                      <h3>参数与大纲</h3>
-                      <div class="code-box">template_name：销售摘要模板</div>
-                      <div class="code-box">missing_params：date_range</div>
-                      <div class="code-box">outline：2 个章节</div>
+                    <div class="meta-item">
+                      <div class="meta-label">模板名称</div>
+                      <div class="meta-value" data-case-detail-report-template-name>经营月报模板</div>
                     </div>
-                  </div>
-                  <div class="assertions">
-                    <div class="assertion pass">s1：sum(amount) = 250</div>
-                    <div class="assertion fail">s2：count(region='east') = 1</div>
+                    <div class="meta-item">
+                      <div class="meta-label">对话脚本</div>
+                      <div class="code-box preformatted" data-case-detail-report-dialogue-script>[{"role":"user","content":"生成一月经营报告"}]</div>
+                    </div>
+                    <div class="meta-item">
+                      <div class="meta-label">参数标准答案</div>
+                      <div class="code-box preformatted" data-case-detail-report-param-ground-truth>{"date_range":"2026-01"}</div>
+                    </div>
+                    <div class="meta-item">
+                      <div class="meta-label">大纲标准答案</div>
+                      <div class="code-box preformatted" data-case-detail-report-outline-ground-truth>{"title":"经营概览","children":[]}</div>
+                    </div>
+                    <div class="meta-item">
+                      <div class="meta-label">内容断言</div>
+                      <div class="code-box preformatted" data-case-detail-report-content-assertions>[{"statement":"GMV","expected":100}]</div>
+                    </div>
                   </div>
                 </div>
               </div>

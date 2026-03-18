@@ -96,6 +96,35 @@ class CaseSetApiTests(unittest.TestCase):
             self.assertEqual(response.status_code, 400)
             self.assertIn('template', response.json()['detail'])
 
+    def test_seeded_case_payloads_match_case_set_types(self):
+        with TestClient(app_module.app) as client:
+            nl2sql = client.get('/api/case-sets/cs-nl2sql').json()['cases'][0]['payload']
+            self.assertEqual(set(nl2sql.keys()), {'case_id', 'question', 'expected_sql'})
+
+            nl2chart = client.get('/api/case-sets/cs-nl2chart').json()['cases'][0]['payload']
+            self.assertEqual(set(nl2chart.keys()), {'case_id', 'question', 'sql', 'expected_chart_type'})
+
+            smart_qa = client.get('/api/case-sets/cs-smart-qa').json()['cases'][0]['payload']
+            self.assertEqual(set(smart_qa.keys()), {'case_id', 'question', 'expected_sql', 'expected_chart_type'})
+
+            report = client.get('/api/case-sets/cs-report').json()['cases'][0]['payload']
+            self.assertEqual(
+                set(report.keys()),
+                {
+                    'case_id',
+                    'user_goal',
+                    'template_name',
+                    'dialogue_script',
+                    'param_ground_truth',
+                    'outline_ground_truth',
+                    'content_assertions',
+                },
+            )
+            self.assertIsInstance(report['dialogue_script'], list)
+            self.assertIsInstance(report['param_ground_truth'], dict)
+            self.assertIsInstance(report['outline_ground_truth'], dict)
+            self.assertIsInstance(report['content_assertions'], list)
+
 
 if __name__ == '__main__':
     unittest.main()

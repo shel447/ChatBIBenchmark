@@ -1193,6 +1193,16 @@ button.ghost {
   margin-bottom: 8px;
 }
 
+.code-box.preformatted {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.detail-stack {
+  display: grid;
+  gap: 12px;
+}
+
 .assertions {
   display: grid;
   gap: 8px;

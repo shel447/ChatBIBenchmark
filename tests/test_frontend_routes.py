@@ -64,9 +64,16 @@ class FrontendRouteTests(unittest.TestCase):
         self.assertIn("仅配置", response.text)
         self.assertIn("执行映射", response.text)
         self.assertIn("执行来源", response.text)
+        self.assertIn("用例ID", response.text)
+        self.assertIn("标准 SQL", response.text)
+        self.assertIn("标准图表类型", response.text)
+        self.assertIn("对话脚本", response.text)
         self.assertNotIn("用例集与用例工具", response.text)
         self.assertNotIn("<h2>用例集</h2>", response.text)
         self.assertNotIn("primary-nav", response.text)
+        self.assertNotIn("data-case-type", response.text)
+        self.assertNotIn("sql_dialect：postgres", response.text)
+        self.assertNotIn("hash_expected：9a12f3", response.text)
 
 
 if __name__ == "__main__":
