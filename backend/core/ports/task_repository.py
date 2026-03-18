@@ -1,22 +1,22 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from ..domain.run import Run
+from ..domain.task import Task
 
 
-class RunRepository(ABC):
+class TaskRepository(ABC):
     @abstractmethod
-    def create(self, run: Run) -> Run:
+    def create(self, task: Task) -> Task:
         raise NotImplementedError
 
     @abstractmethod
-    def list(self, limit: int = 50) -> List[Run]:
+    def update(self, task: Task) -> Task:
         raise NotImplementedError
 
     @abstractmethod
-    def list_by_task(self, task_id: str, limit: int = 50) -> List[Run]:
+    def list(self, limit: int = 50) -> List[Task]:
         raise NotImplementedError
 
     @abstractmethod
-    def get(self, run_id: str) -> Optional[Run]:
+    def get(self, task_id: str) -> Optional[Task]:
         raise NotImplementedError

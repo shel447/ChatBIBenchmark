@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -19,6 +19,7 @@
         <nav class="nav">
           <button class="nav-item active" data-view-target="dashboard">总览</button>
           <button class="nav-item" data-view-target="runs">任务列表</button>
+          <button class="nav-item" data-view-target="schedules">定时任务</button>
           <button class="nav-item" data-view-target="case-sets">用例集</button>
           <button class="nav-item" data-view-target="env-config">环境配置</button>
           <button class="nav-item" data-view-target="metric-sets">指标管理</button>
@@ -147,82 +148,69 @@
               <thead>
                 <tr>
                   <th>任务</th>
+                  <th>启动方式</th>
+                  <th>当前状态</th>
                   <th>用例集</th>
                   <th>环境</th>
-                  <th>
-                    <div class="th-with-sort">
-                      <span>启动时间</span>
-                      <div class="sort-group">
-                        <button class="sort-btn active" type="button">↓</button>
-                        <button class="sort-btn" type="button">↑</button>
-                      </div>
-                    </div>
-                  </th>
-                  <th>
-                    <div class="th-with-sort">
-                      <span>结束时间</span>
-                      <div class="sort-group">
-                        <button class="sort-btn" type="button">↓</button>
-                        <button class="sort-btn" type="button">↑</button>
-                      </div>
-                    </div>
-                  </th>
                   <th>指标参数集</th>
+                  <th>关联定时任务</th>
+                  <th>最近执行时间</th>
                   <th>进展</th>
                   <th>准确率</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr class="row-link" data-view-link="run-detail">
-                  <td>零售 v1.4</td>
+              <tbody data-task-table-body>
+                <tr>
+                  <td>零售待执行任务</td>
+                  <td>待执行</td>
+                  <td>待执行</td>
                   <td>零售 NL2SQL 基准</td>
                   <td>预发环境</td>
-                  <td>2026-03-16 10:12</td>
-                  <td>2026-03-16 10:20</td>
                   <td>标准评测</td>
-                  <td>
-                    <div class="progress-cell">
-                      <span class="progress-text">60 / 200</span>
-                      <div class="progress-bar" aria-label="进度条">
-                        <div class="progress-fill" style="width: 30%"></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="strong">87%</td>
+                  <td>每日巡检</td>
+                  <td>未执行</td>
+                  <td>-</td>
+                  <td class="strong">-</td>
                 </tr>
-                <tr class="row-link" data-view-link="run-detail">
-                  <td>零售 v1.3</td>
-                  <td>零售 NL2CHART 基准</td>
-                  <td>预发环境</td>
-                  <td>2026-03-15 19:40</td>
-                  <td>2026-03-15 19:49</td>
-                  <td>标准评测</td>
-                  <td>
-                    <div class="progress-cell">
-                      <span class="progress-text">45 / 120</span>
-                      <div class="progress-bar" aria-label="进度条">
-                        <div class="progress-fill" style="width: 38%"></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="strong">84%</td>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" data-view="schedules">
+          <div class="panel full">
+            <div class="panel-header">
+              <div>
+                <h2>定时任务</h2>
+                <div class="filters">
+                  <span class="chip">单次</span>
+                  <span class="chip">每日</span>
+                  <span class="chip">启用中</span>
+                </div>
+              </div>
+              <div class="panel-actions">
+                <button class="primary" type="button" data-open-schedule-modal>新建定时任务</button>
+              </div>
+            </div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>定时任务名</th>
+                  <th>关联评测任务</th>
+                  <th>调度类型</th>
+                  <th>下次执行</th>
+                  <th>上次执行</th>
+                  <th>状态</th>
                 </tr>
-                <tr class="row-link" data-view-link="run-detail">
-                  <td>零售 v1.2</td>
-                  <td>智能问数 E2E</td>
-                  <td>生产环境</td>
-                  <td>2026-03-14 09:05</td>
-                  <td>2026-03-14 09:18</td>
-                  <td>严格评测</td>
-                  <td>
-                    <div class="progress-cell">
-                      <span class="progress-text">120 / 200</span>
-                      <div class="progress-bar" aria-label="进度条">
-                        <div class="progress-fill" style="width: 60%"></div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="strong">79%</td>
+              </thead>
+              <tbody data-schedule-table-body>
+                <tr>
+                  <td>每日巡检</td>
+                  <td>零售待执行任务</td>
+                  <td>每日</td>
+                  <td>2026-03-19 09:30</td>
+                  <td>-</td>
+                  <td>启用</td>
                 </tr>
               </tbody>
             </table>
@@ -552,21 +540,50 @@
                   <span class="crumb-sep">/</span>
                   <span class="crumb-current">任务详情</span>
                 </div>
-                <h2>任务详情：零售 v1.4</h2>
+                <h2 data-task-detail-heading>任务详情：零售待执行任务</h2>
               </div>
-              <span class="chip">200 个用例</span>
+              <div class="panel-actions">
+                <button class="primary" type="button" data-execute-task>立即执行</button>
+                <span class="chip" data-task-detail-case-count>未执行</span>
+              </div>
+            </div>
+            <div class="meta-grid task-meta-grid">
+              <div class="meta-item">
+                <div class="meta-label">启动方式</div>
+                <div class="meta-value" data-task-detail-launch-mode>待执行</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">当前状态</div>
+                <div class="meta-value" data-task-detail-status>待执行</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">用例集</div>
+                <div class="meta-value" data-task-detail-case-set>零售 NL2SQL 基准</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">环境</div>
+                <div class="meta-value" data-task-detail-environment>预发环境</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">指标参数集</div>
+                <div class="meta-value" data-task-detail-metric-set>标准评测</div>
+              </div>
+              <div class="meta-item">
+                <div class="meta-label">关联定时任务</div>
+                <div class="meta-value" data-task-detail-schedule-name>未关联</div>
+              </div>
             </div>
             <div class="metric-grid">
               <div class="metric">
                 <div class="metric-label">进展</div>
-                <div class="metric-value">60 / 200</div>
+                <div class="metric-value" data-task-detail-progress-value>未执行</div>
                 <div class="progress-bar" aria-label="进度条">
-                  <div class="progress-fill" style="width: 30%"></div>
+                  <div class="progress-fill" data-task-detail-progress-fill style="width: 0%"></div>
                 </div>
               </div>
               <div class="metric">
                 <div class="metric-label">准确率</div>
-                <div class="metric-value">87%</div>
+                <div class="metric-value" data-task-detail-accuracy>未执行</div>
               </div>
             </div>
             <div class="panel subtle">
@@ -576,20 +593,55 @@
               <div class="config-grid">
                 <div class="config-item">
                   <label class="filter-label" for="run-repeat-count">用例集执行次数</label>
-                  <input class="filter-input" id="run-repeat-count" type="number" min="1" value="1" />
+                  <input class="filter-input" id="run-repeat-count" data-task-detail-repeat-count type="number" min="1" value="1" />
                 </div>
               </div>
             </div>
             <div class="panel subtle">
               <div class="panel-header">
-                <h3>已执行分析结果</h3>
+                <h3>关联定时任务</h3>
+              </div>
+              <div class="schedule-summary-card" data-task-detail-schedule-card>
+                <div class="analysis-label">当前暂无定时任务</div>
+                <div class="analysis-value">未关联</div>
+              </div>
+            </div>
+            <div class="panel subtle">
+              <div class="panel-header">
+                <h3>最新执行结果</h3>
               </div>
               <div class="analysis-grid">
                 <div class="analysis-card">
-                  <div class="analysis-label">准确率</div>
-                  <div class="analysis-value">87%</div>
+                  <div class="analysis-label">最近执行时间</div>
+                  <div class="analysis-value" data-task-detail-latest-run-time>未执行</div>
+                </div>
+                <div class="analysis-card">
+                  <div class="analysis-label">触发来源</div>
+                  <div class="analysis-value" data-task-detail-trigger-source>未执行</div>
                 </div>
               </div>
+            </div>
+            <div class="panel subtle">
+              <div class="panel-header">
+                <h3>执行历史</h3>
+              </div>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>执行 ID</th>
+                    <th>触发来源</th>
+                    <th>状态</th>
+                    <th>开始时间</th>
+                    <th>进展</th>
+                    <th>准确率</th>
+                  </tr>
+                </thead>
+                <tbody data-task-history-body>
+                  <tr>
+                    <td colspan="6">当前暂无执行记录</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </section>
@@ -707,7 +759,7 @@
                     </div>
                     <div>
                       <h3>参数与大纲</h3>
-                      <div class="code-box">template_id：tmpl_sales_summary</div>
+                      <div class="code-box">template_name：销售摘要模板</div>
                       <div class="code-box">missing_params：date_range</div>
                       <div class="code-box">outline：2 个章节</div>
                     </div>
@@ -770,7 +822,58 @@
           <div class="modal-error hidden" data-run-error>请填写所有必填项</div>
           <div class="modal-footer">
             <button class="ghost" type="button" data-close-run-modal>取消</button>
-            <button class="primary" type="submit" data-run-submit>创建并启动</button>
+            <button class="ghost" type="submit" data-launch-mode="deferred" data-run-submit-deferred>保存为待执行</button>
+            <button class="primary" type="submit" data-launch-mode="immediate" data-run-submit>创建并立即执行</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="modal hidden" id="schedule-modal" role="dialog" aria-modal="true">
+      <div class="modal-backdrop" data-close-schedule-modal></div>
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>新建定时任务</h3>
+          <button class="modal-close" type="button" data-close-schedule-modal>×</button>
+        </div>
+        <form class="modal-body" id="schedule-form">
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="filter-label">定时任务名称</span>
+              <input class="filter-input" name="name" type="text" placeholder="例如：每日巡检" required />
+            </label>
+            <label class="form-field">
+              <span class="filter-label">关联评测任务</span>
+              <select class="filter-select" name="task_id" data-schedule-task-select required>
+                <option value="">请选择待执行任务</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="filter-label">调度类型</span>
+              <select class="filter-select" name="schedule_type" data-schedule-type-select required>
+                <option value="one_time">单次</option>
+                <option value="daily">每日</option>
+              </select>
+            </label>
+            <label class="form-field" data-run-at-field>
+              <span class="filter-label">执行时间</span>
+              <input class="filter-input" name="run_at" type="datetime-local" />
+            </label>
+            <label class="form-field hidden" data-daily-time-field>
+              <span class="filter-label">执行时间</span>
+              <input class="filter-input" name="daily_time" type="time" value="09:30" />
+            </label>
+            <label class="form-field">
+              <span class="filter-label">状态</span>
+              <select class="filter-select" name="schedule_status">
+                <option value="enabled">启用</option>
+                <option value="paused">暂停</option>
+              </select>
+            </label>
+          </div>
+          <div class="modal-error hidden" data-schedule-error>请填写所有必填项</div>
+          <div class="modal-footer">
+            <button class="ghost" type="button" data-close-schedule-modal>取消</button>
+            <button class="primary" type="submit" data-schedule-submit>创建定时任务</button>
           </div>
         </form>
       </div>
