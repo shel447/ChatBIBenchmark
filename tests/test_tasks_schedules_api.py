@@ -150,7 +150,7 @@ class TaskScheduleApiTests(unittest.TestCase):
             detail_resp = client.get(f"/api/tasks/{task_id}")
             self.assertEqual(detail_resp.status_code, 200)
             detail = detail_resp.json()
-            self.assertEqual(detail["task"]["task_status"], "running")
+            self.assertEqual(detail["task"]["task_status"], "succeeded")
             self.assertEqual(len(detail["execution_history"]), 2)
             self.assertEqual(detail["latest_execution"]["run_id"], second_execute.json()["run"]["run_id"])
 

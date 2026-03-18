@@ -22,6 +22,7 @@
 | --- | --- | --- |
 | `Task` | `task_id, case_set_id, environment_id, metric_set_id, repeat_count, launch_mode, task_status, latest_execution_id` | 评测任务配置与最新执行指针 |
 | `Run` | `run_id, task_id, total_cases, executed_cases, accuracy, trigger_source, execution_status, started_at, ended_at` | 每次实际执行记录 |
+| `RunCaseResult` | `run_id, case_id, case_type, accuracy, status, issue_tags, detail_metrics, summary` | 单次执行内每个用例的明细结果 |
 | `ScheduleJob` | `schedule_id, task_id, schedule_type, run_at, daily_time, schedule_status, next_triggered_at, last_triggered_at` | 定时规则 |
 
 ```mermaid
@@ -46,6 +47,14 @@ classDiagram
       +executed_cases
       +accuracy
     }
+    class RunCaseResult {
+      +run_id
+      +case_id
+      +case_type
+      +accuracy
+      +status
+      +issue_tags[]
+    }
     class ScheduleJob {
       +schedule_id
       +task_id
@@ -55,6 +64,7 @@ classDiagram
       +last_triggered_at
     }
     Task "1" --> "0..*" Run : 产生
+    Run "1" --> "0..*" RunCaseResult : 细化
     Task "1" --> "0..1" ScheduleJob : 绑定
 ```
 
@@ -186,7 +196,52 @@ sequenceDiagram
 - 当前调度器不支持分布式多实例选主。
 - 当前执行记录默认只创建元数据，不真正下发到外部执行器。
 
-## 6. 存储设计
+## 6. 执行结果物化与分析
+
+### 6.1 单次执行物化
+
+当前 v1 在任务创建为 `immediate` 或对待执行任务手动/定时触发后，会同步生成：
+
+1. `eval_run` 中的执行记录。
+2. `eval_run_case_result` 中的逐用例准确率、状态、问题标签和摘要。
+3. `Task.latest_execution_id` 与聚合准确率。
+
+该设计使任务详情页能够直接展示“最近用例执行明细”，并为趋势分析和结果报告导出提供统一数据源。
+
+### 6.2 结果报告导出
+
+任务结果导出不与某一种文件格式绑定，而是通过导出 profile 解耦：
+
+| profile | 格式 | 内容 |
+| --- | --- | --- |
+| `task-report-excel` | Excel | `任务概览` + `用例明细` 两个页签 |
+| `task-report-json` | JSON | 任务、最新执行、用例明细、历史与趋势快照 |
+
+导出流程由 `task_report_usecases.py` 完成，核心步骤如下：
+
+1. 读取任务配置、最新执行和用例执行明细。
+2. 汇总最近执行历史，形成趋势快照。
+3. 按所选 profile 调用对应 exporter 输出字节流。
+
+### 6.3 趋势分析
+
+趋势分析依赖同一批执行数据，提供三类视角：
+
+- 总览：所有非种子用例集的全局准确率走势与回归告警。
+- 用例集：某一用例集的整体准确率趋势、不稳定用例和回归劣化用例。
+- 单用例：某一用例在多次执行中的准确率变化、波动率和最近回归。
+
+### 6.4 API 视图补充
+
+| 页面/动作 | 接口 | 说明 |
+| --- | --- | --- |
+| 导出任务结果报告 | `GET /api/task-report-profiles` | 查询可用导出 profile |
+| 导出任务结果报告 | `POST /api/tasks/{id}/export` | 按指定 profile 导出结果文件 |
+| 用例集趋势 | `GET /api/case-sets/{id}/trends` | 返回整体准确率趋势与洞察 |
+| 用例趋势 | `GET /api/case-sets/{id}/cases/{case_id}/trends` | 返回单用例准确率趋势 |
+| 总览趋势分析 | `GET /api/analytics/overview` | 返回全局趋势与回归预警 |
+
+## 7. 存储设计
 
 | 表 | 作用 |
 | --- | --- |
@@ -200,7 +255,7 @@ sequenceDiagram
 - `eval_run.task_id -> eval_task.task_id`
 - `schedule_job.task_id -> eval_task.task_id`
 
-## 7. 前后端协作
+## 8. 前后端协作
 
 | 页面/动作 | 接口 | 说明 |
 | --- | --- | --- |
@@ -211,13 +266,13 @@ sequenceDiagram
 | 定时任务列表 | `GET /api/schedules` | 返回调度规则及其绑定任务摘要 |
 | 新建定时任务 | `POST /api/schedules` | 绑定待执行任务 |
 
-## 8. 设计收益
+## 9. 设计收益
 
 1. 将“任务配置”与“运行结果”解耦，避免一个任务只能有一次结果。
 2. 能够表达待执行任务、立即执行任务和定时触发任务的差异。
 3. 便于在任务详情页聚合多次执行历史。
 
-## 9. 后续变更同步要求
+## 10. 后续变更同步要求
 
 以下变化发生时，必须同步更新本文档：
 

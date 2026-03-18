@@ -11,6 +11,16 @@ const closeTaskModalButtons = document.querySelectorAll("[data-close-run-modal]"
 const taskError = document.querySelector("[data-run-error]");
 const taskSubmit = document.querySelector("[data-run-submit]");
 
+const taskReportModal = document.getElementById("task-report-modal");
+const taskReportForm = document.getElementById("task-report-form");
+const openTaskReportModalButton = document.querySelector("[data-open-task-report-modal]");
+const closeTaskReportModalButtons = document.querySelectorAll("[data-close-task-report-modal]");
+const taskReportProfileSelect = document.querySelector("[data-task-report-profile-select]");
+const taskReportRunSummary = document.querySelector("[data-task-report-run-summary]");
+const taskReportDescription = document.querySelector("[data-task-report-description]");
+const taskReportError = document.querySelector("[data-task-report-error]");
+const taskReportSubmit = document.querySelector("[data-task-report-submit]");
+
 const scheduleModal = document.getElementById("schedule-modal");
 const scheduleForm = document.getElementById("schedule-form");
 const openScheduleModalButton = document.querySelector("[data-open-schedule-modal]");
@@ -42,6 +52,7 @@ const taskDetailLatestRunTime = document.querySelector("[data-task-detail-latest
 const taskDetailTriggerSource = document.querySelector("[data-task-detail-trigger-source]");
 const taskHistoryBody = document.querySelector("[data-task-history-body]");
 const executeTaskButton = document.querySelector("[data-execute-task]");
+const taskCaseResultsBody = document.querySelector("[data-task-case-results-body]");
 
 const caseSetsView = document.querySelector('[data-view="case-sets"]');
 const caseSetCards = document.querySelectorAll(".set-card[data-case-set-id]");
@@ -60,6 +71,13 @@ const caseListBody = document.querySelector("[data-case-list-body]");
 const updateCaseSetButton = document.querySelector("[data-update-case-set]");
 const exportCurrentCaseSetButton = document.querySelector("[data-export-current-case-set]");
 const caseSetFileInput = document.querySelector("[data-case-set-file-input]");
+const caseSetTrendSummary = document.querySelector("[data-case-set-trend-summary]");
+const caseSetTrendLatest = document.querySelector("[data-case-set-trend-latest]");
+const caseSetTrendDelta = document.querySelector("[data-case-set-trend-delta]");
+const caseSetTrendCount = document.querySelector("[data-case-set-trend-count]");
+const caseSetTrendChart = document.querySelector("[data-case-set-trend-chart]");
+const caseSetRegressionList = document.querySelector("[data-case-set-regression-list]");
+const caseSetUnstableList = document.querySelector("[data-case-set-unstable-list]");
 const caseDetailHeading = document.querySelector("[data-case-detail-heading]");
 const caseDetailTypeChip = document.querySelector("[data-case-detail-type-chip]");
 const caseDetailCaseSet = document.querySelector("[data-case-detail-case-set]");
@@ -83,6 +101,12 @@ const caseDetailReportDialogueScript = document.querySelector("[data-case-detail
 const caseDetailReportParamGroundTruth = document.querySelector("[data-case-detail-report-param-ground-truth]");
 const caseDetailReportOutlineGroundTruth = document.querySelector("[data-case-detail-report-outline-ground-truth]");
 const caseDetailReportContentAssertions = document.querySelector("[data-case-detail-report-content-assertions]");
+const caseTrendSummary = document.querySelector("[data-case-trend-summary]");
+const caseTrendLatest = document.querySelector("[data-case-trend-latest]");
+const caseTrendDelta = document.querySelector("[data-case-trend-delta]");
+const caseTrendVolatility = document.querySelector("[data-case-trend-volatility]");
+const caseTrendChart = document.querySelector("[data-case-trend-chart]");
+const caseTrendAlerts = document.querySelector("[data-case-trend-alerts]");
 const metricSummaryCount = document.querySelector("[data-metric-summary-count]");
 const metricSummaryScenarios = document.querySelector("[data-metric-summary-scenarios]");
 const metricSummaryHardGates = document.querySelector("[data-metric-summary-hard-gates]");
@@ -114,6 +138,14 @@ const metricFormThreshold = document.querySelector("[data-metric-form-threshold]
 const metricEditBody = document.querySelector("[data-metric-edit-body]");
 const metricError = document.querySelector("[data-metric-error]");
 const metricSubmitButton = document.querySelector("[data-metric-submit]");
+const overviewRefreshNote = document.querySelector("[data-overview-refresh-note]");
+const overviewLatestAccuracy = document.querySelector("[data-overview-latest-accuracy]");
+const overviewLatestDelta = document.querySelector("[data-overview-latest-delta]");
+const overviewCaseSetCount = document.querySelector("[data-overview-case-set-count]");
+const overviewAlertCount = document.querySelector("[data-overview-alert-count]");
+const overviewGlobalChart = document.querySelector("[data-overview-global-chart]");
+const overviewCaseSetList = document.querySelector("[data-overview-case-set-list]");
+const overviewAlertList = document.querySelector("[data-overview-alert-list]");
 
 const difficultyLabels = ["低", "中", "高"];
 const launchModeLabels = { immediate: "立即执行", deferred: "待执行" };
@@ -146,6 +178,8 @@ let metricSetsState = [];
 let currentMetricSetId = "metric-nl2sql-exec";
 let currentMetricFilter = "全部";
 let metricModalMode = "create";
+let taskReportProfilesState = [];
+let overviewAnalyticsState = null;
 
 const caseSetTypeMap = {
   "cs-seed": "NL2SQL",
@@ -303,6 +337,220 @@ function renderProgressCell(execution) {
       </div>
     </div>
   `;
+}
+
+function formatPercent(value, digits = 0, fallback = "--") {
+  const numeric = Number(value);
+  if (value === null || value === undefined || Number.isNaN(numeric)) {
+    return fallback;
+  }
+  return `${(numeric * 100).toFixed(digits)}%`;
+}
+
+function formatDeltaPercent(value, digits = 1, fallback = "--") {
+  const numeric = Number(value);
+  if (value === null || value === undefined || Number.isNaN(numeric)) {
+    return fallback;
+  }
+  const percent = numeric * 100;
+  const sign = percent > 0 ? "+" : "";
+  return `${sign}${percent.toFixed(digits)}%`;
+}
+
+function setContainerHtml(node, html) {
+  if (node) {
+    node.innerHTML = html;
+  }
+}
+
+function downloadBlob(blob, filename) {
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(blobUrl), 0);
+}
+
+async function downloadBlobResponse(response, fallbackName) {
+  const blob = await response.blob();
+  const filename = parseFilename(response.headers.get("content-disposition"), fallbackName);
+  downloadBlob(blob, filename);
+}
+
+function renderLineChartSvg(series, emptyText = "暂无趋势数据") {
+  const points = (series || []).filter((item) => item && typeof item.accuracy === "number");
+  if (points.length === 0) {
+    return `<div class="insight-empty">${escapeHtml(emptyText)}</div>`;
+  }
+  const width = 640;
+  const height = 220;
+  const padding = 24;
+  const values = points.map((item) => Number(item.accuracy));
+  const min = Math.min(...values, 0);
+  const max = Math.max(...values, 1);
+  const range = Math.max(max - min, 0.05);
+  const xStep = points.length > 1 ? (width - padding * 2) / (points.length - 1) : 0;
+  const toCoord = (value, index) => ({
+    x: padding + xStep * index,
+    y: height - padding - ((value - min) / range) * (height - padding * 2),
+  });
+  const polyline = points.map((item, index) => {
+    const coord = toCoord(Number(item.accuracy), index);
+    return `${coord.x.toFixed(1)},${coord.y.toFixed(1)}`;
+  }).join(" ");
+  const circles = points.map((item, index) => {
+    const coord = toCoord(Number(item.accuracy), index);
+    return `<circle cx="${coord.x.toFixed(1)}" cy="${coord.y.toFixed(1)}" r="4" fill="#0f766e"></circle>`;
+  }).join("");
+  const firstLabel = formatDateTime(points[0].started_at || points[0].created_at);
+  const lastLabel = formatDateTime(points[points.length - 1].started_at || points[points.length - 1].created_at);
+  return `
+    <svg viewBox="0 0 ${width} ${height}" aria-hidden="true">
+      <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#d1d5db" stroke-width="1"></line>
+      <line x1="${padding}" y1="${padding}" x2="${padding}" y2="${height - padding}" stroke="#d1d5db" stroke-width="1"></line>
+      <polyline points="${polyline}" fill="none" stroke="#0f766e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+      ${circles}
+    </svg>
+    <div class="trend-axis-meta">
+      <span>${escapeHtml(firstLabel)}</span>
+      <span>${escapeHtml(lastLabel)}</span>
+    </div>
+  `;
+}
+
+function renderTrendChart(container, series, emptyText) {
+  setContainerHtml(container, renderLineChartSvg(series, emptyText));
+}
+
+function renderInsightList(container, items, renderer, emptyText) {
+  if (!container) {
+    return;
+  }
+  if (!items || items.length === 0) {
+    container.innerHTML = `<div class="insight-empty">${escapeHtml(emptyText)}</div>`;
+    return;
+  }
+  container.innerHTML = items.map((item, index) => renderer(item, index)).join("");
+}
+
+function renderTaskCaseResults(caseResults) {
+  if (!taskCaseResultsBody) {
+    return;
+  }
+  if (!caseResults || caseResults.length === 0) {
+    taskCaseResultsBody.innerHTML = `
+      <tr>
+        <td colspan="6">当前暂无用例执行结果</td>
+      </tr>
+    `;
+    return;
+  }
+  taskCaseResultsBody.innerHTML = caseResults
+    .map(
+      (item) => `
+        <tr>
+          <td>${escapeHtml(item.case_id)}</td>
+          <td>${escapeHtml(item.case_title || item.case_id)}</td>
+          <td>${escapeHtml(item.case_type || "-")}</td>
+          <td class="strong">${escapeHtml(formatPercent(item.accuracy, 1, "--"))}</td>
+          <td>${escapeHtml(item.status || "-")}</td>
+          <td>${escapeHtml((item.issue_tags || []).join("、") || "-")}</td>
+        </tr>
+      `,
+    )
+    .join("");
+}
+
+function populateTaskReportProfiles() {
+  if (!taskReportProfileSelect) {
+    return;
+  }
+  const profiles = taskReportProfilesState.length > 0
+    ? taskReportProfilesState
+    : [
+      {
+        profile_id: "task-report-excel",
+        name: "Excel 执行总览",
+        description: "适合交付评测结果，包含任务整体概览与用例明细两个页签。",
+        sections: ["任务概览", "用例明细"],
+      },
+      {
+        profile_id: "task-report-json",
+        name: "JSON 全量快照",
+        description: "保留任务、执行、用例明细与趋势摘要，适合系统间集成。",
+        sections: ["task", "latest_execution", "case_results", "trend_snapshot"],
+      },
+    ];
+  taskReportProfilesState = profiles;
+  taskReportProfileSelect.innerHTML = '<option value="">请选择</option>' + profiles
+    .map((profile) => `<option value="${escapeHtml(profile.profile_id)}">${escapeHtml(profile.name)}</option>`)
+    .join("");
+  if (profiles.length > 0) {
+    taskReportProfileSelect.value = profiles[0].profile_id;
+  }
+  updateTaskReportProfileDescription();
+}
+
+function updateTaskReportProfileDescription() {
+  if (!taskReportDescription || !taskReportProfileSelect) {
+    return;
+  }
+  const profile = taskReportProfilesState.find((item) => item.profile_id === taskReportProfileSelect.value);
+  if (!profile) {
+    taskReportDescription.textContent = "请选择一种报告格式。";
+    return;
+  }
+  const sections = (profile.sections || []).join(" / ");
+  taskReportDescription.textContent = `${profile.description}
+输出结构：${sections}`;
+}
+
+function showTaskReportError(message) {
+  if (!taskReportError) {
+    return;
+  }
+  taskReportError.textContent = message;
+  taskReportError.classList.remove("hidden");
+}
+
+function closeTaskReportModal() {
+  if (!taskReportModal) {
+    return;
+  }
+  taskReportModal.classList.add("hidden");
+  if (taskReportForm) {
+    taskReportForm.reset();
+  }
+  if (taskReportError) {
+    taskReportError.classList.add("hidden");
+    taskReportError.textContent = "请选择报告格式";
+  }
+}
+
+function openTaskReportModal() {
+  if (!taskReportModal) {
+    return;
+  }
+  populateTaskReportProfiles();
+  if (taskReportError) {
+    taskReportError.classList.add("hidden");
+  }
+  const latestExecution = currentTaskDetail?.latest_execution;
+  if (taskReportRunSummary) {
+    taskReportRunSummary.textContent = latestExecution
+      ? `${latestExecution.run_id} · ${formatDateTime(latestExecution.started_at)}`
+      : "当前任务尚无执行结果";
+  }
+  if (taskReportSubmit) {
+    taskReportSubmit.disabled = !latestExecution;
+  }
+  if (!latestExecution) {
+    showTaskReportError("当前任务暂无可导出的执行结果");
+  }
+  taskReportModal.classList.remove("hidden");
 }
 
 function openTaskModal() {
@@ -516,6 +764,45 @@ async function fetchMetricSets() {
   return requestJson("/api/metric-sets");
 }
 
+async function loadTaskReportProfiles() {
+  try {
+    const payload = await fetchTaskReportProfiles();
+    taskReportProfilesState = payload.profiles || [];
+    updateTaskReportProfileDescription();
+  } catch (error) {
+    taskReportProfilesState = [];
+  }
+}
+
+async function fetchTaskReportProfiles() {
+  return requestJson("/api/task-report-profiles");
+}
+
+async function exportTaskReportFile(taskId, payload) {
+  const response = await fetch(`/api/tasks/${encodeURIComponent(taskId)}/export`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(() => ({}));
+    throw new Error(errorPayload.detail || "导出失败");
+  }
+  return response;
+}
+
+async function fetchCaseSetTrends(caseSetId) {
+  return requestJson(`/api/case-sets/${encodeURIComponent(caseSetId)}/trends`);
+}
+
+async function fetchCaseTrend(caseSetId, caseId) {
+  return requestJson(`/api/case-sets/${encodeURIComponent(caseSetId)}/cases/${encodeURIComponent(caseId)}/trends`);
+}
+
+async function fetchOverviewAnalytics() {
+  return requestJson("/api/analytics/overview");
+}
+
 async function createMetricSet(payload) {
   return requestJson("/api/metric-sets", {
     method: "POST",
@@ -649,6 +936,7 @@ function renderCaseDetail(caseId) {
   setStructuredDetailText(caseDetailReportContentAssertions, payload.content_assertions);
 
   activateTypePanel(panelType);
+  void loadCaseTrend(currentCaseSetId, caseId);
   return true;
 }
 
@@ -667,10 +955,12 @@ async function loadCaseSetDetail(caseSetId, options = {}) {
       return null;
     }
     renderCaseSetDetail(detail);
+    void loadCaseSetTrends(requestedCaseSetId);
     return detail;
   } catch (error) {
     if (requestedCaseSetId === currentCaseSetId) {
       showCaseSetFeedback("加载用例集失败，请稍后重试", true);
+      renderCaseSetTrends({ summary: { run_count: 0, latest_accuracy: null, latest_delta: null }, run_series: [], regression_alerts: [], unstable_cases: [] });
     }
     return null;
   }
@@ -1017,6 +1307,203 @@ function renderSchedules(schedules) {
     .join("");
 }
 
+function renderOverviewAnalytics(payload) {
+  overviewAnalyticsState = payload;
+  const series = payload?.global_accuracy_series || [];
+  const latest = series.length > 0 ? series[series.length - 1].accuracy : null;
+  const previous = series.length > 1 ? series[series.length - 2].accuracy : null;
+  const delta = latest !== null && previous !== null ? latest - previous : null;
+  if (overviewRefreshNote) {
+    overviewRefreshNote.textContent = series.length > 0 ? `最近 ${series.length} 次执行` : "暂无执行";
+  }
+  if (overviewLatestAccuracy) {
+    overviewLatestAccuracy.textContent = formatPercent(latest, 1, "未执行");
+  }
+  if (overviewLatestDelta) {
+    overviewLatestDelta.textContent = formatDeltaPercent(delta, 1, "--");
+  }
+  if (overviewCaseSetCount) {
+    overviewCaseSetCount.textContent = String((payload?.case_set_summaries || []).length);
+  }
+  if (overviewAlertCount) {
+    overviewAlertCount.textContent = String((payload?.regression_alerts || []).length);
+  }
+  renderTrendChart(overviewGlobalChart, series, "暂无整体趋势数据");
+  const caseSetSummaries = [...(payload?.case_set_summaries || [])].sort((left, right) => Number(right.latest_accuracy ?? -1) - Number(left.latest_accuracy ?? -1));
+  renderInsightList(
+    overviewCaseSetList,
+    caseSetSummaries,
+    (item) => `
+      <button class="insight-item overview-case-set-item" type="button" data-view-link="case-list" data-case-set-id="${escapeHtml(item.case_set_id)}">
+        <div>
+          <div class="insight-title">${escapeHtml(item.case_set_name)}</div>
+          <div class="insight-sub">${escapeHtml(item.type)} · ${escapeHtml(String(item.run_count || 0))} 次执行</div>
+        </div>
+        <div class="insight-metric ${Number(item.latest_delta || 0) < 0 ? "negative" : "positive"}">
+          <strong>${escapeHtml(formatPercent(item.latest_accuracy, 1, "--"))}</strong>
+          <span>${escapeHtml(formatDeltaPercent(item.latest_delta, 1, "--"))}</span>
+        </div>
+      </button>
+    `,
+    "暂无用例集趋势",
+  );
+  renderInsightList(
+    overviewAlertList,
+    payload?.regression_alerts || [],
+    (item) => `
+      <div class="insight-item danger">
+        <div>
+          <div class="insight-title">${escapeHtml(item.case_set_name || item.case_set_id)} / ${escapeHtml(item.case_id)}</div>
+          <div class="insight-sub">${escapeHtml(item.title || "-")} · ${escapeHtml(item.from_run_id || "-")} → ${escapeHtml(item.to_run_id || "-")}</div>
+        </div>
+        <div class="insight-metric negative">${escapeHtml(formatDeltaPercent(item.delta, 1, "--"))}</div>
+      </div>
+    `,
+    "暂无回归劣化预警",
+  );
+}
+
+async function loadOverviewAnalytics() {
+  try {
+    const payload = await fetchOverviewAnalytics();
+    renderOverviewAnalytics(payload);
+  } catch (error) {
+    renderOverviewAnalytics({ global_accuracy_series: [], case_set_summaries: [], regression_alerts: [] });
+    if (overviewRefreshNote) {
+      overviewRefreshNote.textContent = "分析加载失败";
+    }
+  }
+}
+
+function renderCaseSetTrends(detail) {
+  const summary = detail?.summary || {};
+  if (caseSetTrendSummary) {
+    caseSetTrendSummary.textContent = (summary.run_count || 0) > 0 ? `最近 ${summary.run_count} 次执行` : "暂无执行";
+  }
+  if (caseSetTrendLatest) {
+    caseSetTrendLatest.textContent = formatPercent(summary.latest_accuracy, 1, "未执行");
+  }
+  if (caseSetTrendDelta) {
+    caseSetTrendDelta.textContent = formatDeltaPercent(summary.latest_delta, 1, "--");
+  }
+  if (caseSetTrendCount) {
+    caseSetTrendCount.textContent = String(summary.run_count || 0);
+  }
+  renderTrendChart(caseSetTrendChart, detail?.run_series || [], "暂无趋势数据");
+  renderInsightList(
+    caseSetRegressionList,
+    detail?.regression_alerts || [],
+    (item) => `
+      <button class="insight-item" type="button" data-view-link="case-detail" data-case-id="${escapeHtml(item.case_id)}">
+        <div>
+          <div class="insight-title">${escapeHtml(item.case_id)} · ${escapeHtml(item.title || "-")}</div>
+          <div class="insight-sub">${escapeHtml((item.issue_tags || []).join("、") || "无问题标签")}</div>
+        </div>
+        <div class="insight-metric negative">${escapeHtml(formatDeltaPercent(item.delta, 1, "--"))}</div>
+      </button>
+    `,
+    "暂无回归劣化预警",
+  );
+  renderInsightList(
+    caseSetUnstableList,
+    detail?.unstable_cases || [],
+    (item) => `
+      <button class="insight-item" type="button" data-view-link="case-detail" data-case-id="${escapeHtml(item.case_id)}">
+        <div>
+          <div class="insight-title">${escapeHtml(item.case_id)} · ${escapeHtml(item.title || "-")}</div>
+          <div class="insight-sub">平均准确率 ${escapeHtml(formatPercent(item.avg_accuracy, 1, "--"))}</div>
+        </div>
+        <div class="insight-metric warn">波动 ${escapeHtml(formatPercent(item.volatility, 1, "--"))}</div>
+      </button>
+    `,
+    "暂无不稳定用例",
+  );
+}
+
+async function loadCaseSetTrends(caseSetId) {
+  try {
+    const detail = await fetchCaseSetTrends(caseSetId);
+    if (caseSetId === currentCaseSetId) {
+      renderCaseSetTrends(detail);
+    }
+  } catch (error) {
+    if (caseSetId === currentCaseSetId) {
+      renderCaseSetTrends({ summary: { run_count: 0, latest_accuracy: null, latest_delta: null }, run_series: [], regression_alerts: [], unstable_cases: [] });
+      if (caseSetTrendSummary) {
+        caseSetTrendSummary.textContent = "趋势加载失败";
+      }
+    }
+  }
+}
+
+function renderCaseTrend(detail) {
+  const summary = detail?.summary || {};
+  if (caseTrendSummary) {
+    caseTrendSummary.textContent = (summary.run_count || 0) > 0 ? `最近 ${summary.run_count} 次执行` : "暂无执行";
+  }
+  if (caseTrendLatest) {
+    caseTrendLatest.textContent = formatPercent(summary.latest_accuracy, 1, "未执行");
+  }
+  if (caseTrendDelta) {
+    caseTrendDelta.textContent = formatDeltaPercent(summary.latest_delta, 1, "--");
+  }
+  if (caseTrendVolatility) {
+    caseTrendVolatility.textContent = formatPercent(summary.volatility, 1, "--");
+  }
+  renderTrendChart(caseTrendChart, detail?.accuracy_series || [], "暂无趋势数据");
+  const alerts = [];
+  if (typeof summary.latest_delta === "number" && summary.latest_delta <= -0.05) {
+    alerts.push({
+      level: "danger",
+      title: "最近一次执行出现回归",
+      detail: `准确率变动 ${formatDeltaPercent(summary.latest_delta, 1, "--")}`,
+    });
+  }
+  if (typeof summary.volatility === "number" && summary.volatility >= 0.05) {
+    alerts.push({
+      level: "warn",
+      title: "该用例波动较大",
+      detail: `波动率 ${formatPercent(summary.volatility, 1, "--")}`,
+    });
+  }
+  if (typeof summary.latest_accuracy === "number" && summary.latest_accuracy < 0.7) {
+    alerts.push({
+      level: "danger",
+      title: "当前准确率处于低位",
+      detail: `最近准确率 ${formatPercent(summary.latest_accuracy, 1, "--")}`,
+    });
+  }
+  renderInsightList(
+    caseTrendAlerts,
+    alerts,
+    (item) => `
+      <div class="insight-item static ${escapeHtml(item.level)}">
+        <div>
+          <div class="insight-title">${escapeHtml(item.title)}</div>
+          <div class="insight-sub">${escapeHtml(item.detail)}</div>
+        </div>
+      </div>
+    `,
+    "暂无趋势洞察",
+  );
+}
+
+async function loadCaseTrend(caseSetId, caseId) {
+  try {
+    const detail = await fetchCaseTrend(caseSetId, caseId);
+    if (caseSetId === currentCaseSetId && caseId === currentCaseId) {
+      renderCaseTrend(detail);
+    }
+  } catch (error) {
+    if (caseSetId === currentCaseSetId && caseId === currentCaseId) {
+      renderCaseTrend({ summary: { run_count: 0, latest_accuracy: null, latest_delta: null, volatility: null }, accuracy_series: [] });
+      if (caseTrendSummary) {
+        caseTrendSummary.textContent = "趋势加载失败";
+      }
+    }
+  }
+}
+
 function renderTaskDetail(detail) {
   currentTaskDetail = detail;
   const { task, latest_execution: latestExecution, execution_history: history, schedule, metric_set: metricSet } = detail;
@@ -1067,6 +1554,10 @@ function renderTaskDetail(detail) {
     executeTaskButton.classList.toggle("hidden", task.launch_mode !== "deferred");
     executeTaskButton.dataset.taskId = task.task_id;
   }
+  if (openTaskReportModalButton) {
+    openTaskReportModalButton.disabled = !latestExecution;
+    openTaskReportModalButton.dataset.taskId = task.task_id;
+  }
   if (taskDetailScheduleCard) {
     if (schedule) {
       taskDetailScheduleCard.innerHTML = `
@@ -1082,6 +1573,7 @@ function renderTaskDetail(detail) {
       `;
     }
   }
+  renderTaskCaseResults(detail.latest_case_results || []);
   if (taskHistoryBody) {
     if (!history || history.length === 0) {
       taskHistoryBody.innerHTML = `
@@ -1235,6 +1727,16 @@ document.addEventListener("click", (event) => {
   if (taskId) {
     currentTaskId = taskId;
     void loadTaskDetail(taskId);
+    activateView(link.dataset.viewLink);
+    return;
+  }
+
+  const caseSetId = link.dataset.caseSetId;
+  if (caseSetId) {
+    currentCaseSetId = caseSetId;
+    void loadCaseSetDetail(caseSetId);
+    activateView(link.dataset.viewLink || "case-list");
+    return;
   }
 
   activateView(link.dataset.viewLink);
@@ -1452,6 +1954,52 @@ if (metricForm) {
   });
 }
 
+if (openTaskReportModalButton) {
+  openTaskReportModalButton.addEventListener("click", openTaskReportModal);
+}
+
+if (closeTaskReportModalButtons.length) {
+  closeTaskReportModalButtons.forEach((button) => {
+    button.addEventListener("click", closeTaskReportModal);
+  });
+}
+
+if (taskReportProfileSelect) {
+  taskReportProfileSelect.addEventListener("change", updateTaskReportProfileDescription);
+}
+
+if (taskReportForm) {
+  taskReportForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const taskId = currentTaskId || openTaskReportModalButton?.dataset.taskId;
+    const profileId = String(taskReportProfileSelect?.value || "").trim();
+    const runId = currentTaskDetail?.latest_execution?.run_id || null;
+    if (!taskId || !profileId) {
+      showTaskReportError("请选择报告格式");
+      return;
+    }
+    if (taskReportSubmit) {
+      taskReportSubmit.disabled = true;
+    }
+    const originalText = taskReportSubmit?.textContent || "导出";
+    if (taskReportSubmit) {
+      taskReportSubmit.textContent = "导出中...";
+    }
+    try {
+      const response = await exportTaskReportFile(taskId, { profile_id: profileId, run_id: runId });
+      await downloadBlobResponse(response, `task-report-${taskId}`);
+      closeTaskReportModal();
+    } catch (error) {
+      showTaskReportError(error instanceof Error ? error.message : "导出失败，请稍后重试");
+    } finally {
+      if (taskReportSubmit) {
+        taskReportSubmit.disabled = false;
+        taskReportSubmit.textContent = originalText;
+      }
+    }
+  });
+}
+
 if (openTaskModalButton) {
   openTaskModalButton.addEventListener("click", openTaskModal);
 }
@@ -1498,6 +2046,7 @@ if (taskForm) {
       });
       await loadTasks();
       await loadSchedules();
+      await loadOverviewAnalytics();
       if (launchMode === "immediate" && payload.task?.task_id) {
         currentTaskId = payload.task.task_id;
         await loadTaskDetail(currentTaskId);
@@ -1588,6 +2137,7 @@ if (executeTaskButton) {
       await loadTasks();
       await loadSchedules();
       await loadTaskDetail(taskId);
+      await loadOverviewAnalytics();
     } finally {
       executeTaskButton.disabled = false;
       executeTaskButton.textContent = originalText;
@@ -1602,3 +2152,5 @@ void loadCaseSetDetail(currentCaseSetId);
 void loadMetricSets();
 void loadTasks();
 void loadSchedules();
+void loadTaskReportProfiles();
+void loadOverviewAnalytics();

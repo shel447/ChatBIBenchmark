@@ -16,8 +16,11 @@ from .core.report_metric_sets import (
     validate_report_case_requirements,
 )
 from .core.usecases.case_set_usecases import export_case_set, get_case_set_detail, import_case_set, list_case_sets
+from .core.usecases.execution_result_usecases import materialize_execution_results
 from .core.usecases.metric_set_usecases import create_metric_set, get_metric_set, list_metric_sets, update_metric_set
 from .core.usecases.run_usecases import get_run as get_execution_run, list_runs as list_execution_runs
+from .core.usecases.task_report_usecases import build_task_report_bundle, export_task_report, list_task_report_profiles
+from .core.usecases.trend_usecases import get_case_set_trends, get_case_trends, get_overview_analytics
 from .core.usecases.schedule_usecases import (
     DEFAULT_TIMEZONE,
     create_schedule,
@@ -109,6 +112,24 @@ def _run_to_dict(run):
         "execution_status": run.execution_status,
         "started_at": run.started_at,
         "ended_at": run.ended_at,
+    }
+
+
+def _case_result_to_dict(item):
+    return {
+        "run_id": item.run_id,
+        "task_id": item.task_id,
+        "case_set_id": item.case_set_id,
+        "case_id": item.case_id,
+        "case_title": item.case_title,
+        "case_type": item.case_type,
+        "accuracy": item.accuracy,
+        "status": item.status,
+        "issue_tags": item.issue_tags,
+        "detail_metrics": item.detail_metrics,
+        "summary": item.summary,
+        "created_at": item.created_at,
+        "updated_at": item.updated_at,
     }
 
 
@@ -229,7 +250,7 @@ def _evaluate_report_with_metric_set(case_payload, output_payload, config, data_
 
 def _scheduler_loop(stop_event: threading.Event):
     while not stop_event.is_set():
-        process_due_schedules(DEFAULT_RUN_DB)
+        process_due_schedules(DEFAULT_RUN_DB, DEFAULT_CASE_SET_DB)
         stop_event.wait(SCHEDULER_INTERVAL_SECONDS)
 
 
@@ -387,6 +408,7 @@ async def create_task_api(request: Request):
 
     task_repo = SqliteTaskRepository(DEFAULT_RUN_DB)
     run_repo = SqliteRunRepository(DEFAULT_RUN_DB)
+    case_set_repo = SqliteCaseSetRepository(DEFAULT_CASE_SET_DB)
     try:
         task, latest_execution = create_task(
             task_repo,
@@ -400,11 +422,19 @@ async def create_task_api(request: Request):
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    latest_case_results = []
+    if latest_execution:
+        materialized = materialize_execution_results(run_repo, task_repo, case_set_repo, latest_execution.run_id)
+        latest_execution = materialized["run"] if materialized else latest_execution
+        latest_case_results = [_case_result_to_dict(item) for item in (materialized["case_results"] if materialized else [])]
+        task = task_repo.get(task.task_id) or task
+
     response = {"task": _task_to_dict(task), "metric_set": _get_metric_set_summary(task.metric_set_id)}
     if latest_execution:
         response["latest_execution"] = _run_to_dict(latest_execution)
+        response["latest_case_results"] = latest_case_results
     return response
-
 
 @app.get("/api/tasks")
 async def list_tasks_api():
@@ -420,27 +450,90 @@ async def get_task_api(task_id: str):
     if not task:
         raise HTTPException(status_code=404, detail="task not found")
     latest_execution = run_repo.get(task.latest_execution_id) if task.latest_execution_id else None
+    latest_case_results = run_repo.list_case_results(task.latest_execution_id) if task.latest_execution_id else []
     return {
         "task": _task_to_dict(task),
         "metric_set": _get_metric_set_summary(task.metric_set_id),
         "schedule": _get_schedule_summary_for_task(task_id),
         "latest_execution": _run_to_dict(latest_execution) if latest_execution else None,
+        "latest_case_results": [_case_result_to_dict(item) for item in latest_case_results],
         "execution_history": [_run_to_dict(run) for run in list_task_executions(run_repo, task_id)],
     }
+
+
+@app.get("/api/task-report-profiles")
+async def list_task_report_profiles_api():
+    return {"profiles": list_task_report_profiles()}
+
+
+@app.post("/api/tasks/{task_id}/export")
+async def export_task_report_api(task_id: str, request: Request):
+    payload = await request.json()
+    profile_id = payload.get("profile_id")
+    if not profile_id:
+        raise HTTPException(status_code=400, detail="profile_id is required")
+    bundle = build_task_report_bundle(
+        SqliteTaskRepository(DEFAULT_RUN_DB),
+        SqliteRunRepository(DEFAULT_RUN_DB),
+        SqliteCaseSetRepository(DEFAULT_CASE_SET_DB),
+        SqliteMetricSetRepository(DEFAULT_RUN_DB),
+        SqliteScheduleRepository(DEFAULT_RUN_DB),
+        task_id,
+        payload.get("run_id"),
+    )
+    if not bundle:
+        raise HTTPException(status_code=404, detail="task not found")
+    if not bundle["latest_execution"]:
+        raise HTTPException(status_code=400, detail="task has no execution result")
+    try:
+        profile, content, media_type = export_task_report(profile_id, bundle)
+    except LookupError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    filename = f"task-report-{bundle['task'].task_id}{profile['file_extension']}"
+    return Response(
+        content=content,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.get("/api/case-sets/{case_set_id}/trends")
+async def get_case_set_trends_api(case_set_id: str):
+    detail = get_case_set_trends(SqliteCaseSetRepository(DEFAULT_CASE_SET_DB), SqliteRunRepository(DEFAULT_RUN_DB), case_set_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="case_set not found")
+    return detail
+
+
+@app.get("/api/case-sets/{case_set_id}/cases/{case_id}/trends")
+async def get_case_trends_api(case_set_id: str, case_id: str):
+    detail = get_case_trends(SqliteCaseSetRepository(DEFAULT_CASE_SET_DB), SqliteRunRepository(DEFAULT_RUN_DB), case_set_id, case_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="case trend not found")
+    return detail
+
+
+@app.get("/api/analytics/overview")
+async def get_overview_analytics_api():
+    return get_overview_analytics(SqliteCaseSetRepository(DEFAULT_CASE_SET_DB), SqliteRunRepository(DEFAULT_RUN_DB))
 
 
 @app.post("/api/tasks/{task_id}/execute")
 async def execute_task_api(task_id: str):
     task_repo = SqliteTaskRepository(DEFAULT_RUN_DB)
     run_repo = SqliteRunRepository(DEFAULT_RUN_DB)
+    case_set_repo = SqliteCaseSetRepository(DEFAULT_CASE_SET_DB)
     try:
         task, run = execute_task(task_repo, run_repo, task_id, trigger_source="manual")
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return {"task": _task_to_dict(task), "metric_set": _get_metric_set_summary(task.metric_set_id), "run": _run_to_dict(run)}
-
+    materialized = materialize_execution_results(run_repo, task_repo, case_set_repo, run.run_id)
+    task = task_repo.get(task.task_id) or task
+    run = materialized["run"] if materialized else run
+    case_results = [_case_result_to_dict(item) for item in (materialized["case_results"] if materialized else [])]
+    return {"task": _task_to_dict(task), "metric_set": _get_metric_set_summary(task.metric_set_id), "run": _run_to_dict(run), "case_results": case_results}
 
 @app.post("/api/runs")
 async def create_run_api(request: Request):
@@ -453,6 +546,7 @@ async def create_run_api(request: Request):
 
     task_repo = SqliteTaskRepository(DEFAULT_RUN_DB)
     run_repo = SqliteRunRepository(DEFAULT_RUN_DB)
+    case_set_repo = SqliteCaseSetRepository(DEFAULT_CASE_SET_DB)
     task, run = create_task(
         task_repo,
         run_repo,
@@ -463,8 +557,10 @@ async def create_run_api(request: Request):
         payload["repeat_count"],
         "immediate",
     )
-    return {"task": _task_to_dict(task), "run": _run_to_dict(run)}
-
+    materialized = materialize_execution_results(run_repo, task_repo, case_set_repo, run.run_id)
+    task = task_repo.get(task.task_id) or task
+    run = materialized["run"] if materialized else run
+    return {"task": _task_to_dict(task), "run": _run_to_dict(run), "case_results": [_case_result_to_dict(item) for item in (materialized["case_results"] if materialized else [])]}
 
 @app.get("/api/runs")
 async def list_runs_api():
@@ -479,8 +575,7 @@ async def get_run_api(run_id: str):
     run = get_execution_run(repo, run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
-    return {"run": _run_to_dict(run)}
-
+    return {"run": _run_to_dict(run), "case_results": [_case_result_to_dict(item) for item in repo.list_case_results(run_id)]}
 
 @app.post("/api/schedules")
 async def create_schedule_api(request: Request):
