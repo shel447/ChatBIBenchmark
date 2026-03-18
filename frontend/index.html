@@ -436,38 +436,155 @@
         </section>
 
         <section class="view" data-view="metric-sets">
-          <div class="panel full">
+          <div class="metric-summary-grid">
+            <div class="card">
+              <div class="card-label">参数集数量</div>
+              <div class="card-value" data-metric-summary-count>5</div>
+              <div class="card-note">含内置行业基线与自定义组合</div>
+            </div>
+            <div class="card">
+              <div class="card-label">覆盖任务类型</div>
+              <div class="card-value" data-metric-summary-scenarios>4</div>
+              <div class="card-note">NL2SQL / NL2CHART / 智能问数 / 报告多轮交互</div>
+            </div>
+            <div class="card">
+              <div class="card-label">硬门禁指标</div>
+              <div class="card-value" data-metric-summary-hard-gates>12</div>
+              <div class="card-note">对执行正确性、事实性、渲染成功率做强约束</div>
+            </div>
+          </div>
+          <div class="panel full metric-shell">
             <div class="panel-header">
-              <h2>评测指标管理</h2>
+              <div class="panel-title-stack">
+                <h2>评测指标管理</h2>
+                <div class="filters metric-filter-row">
+                  <button class="chip chip-button active" type="button" data-metric-filter="全部">全部</button>
+                  <button class="chip chip-button" type="button" data-metric-filter="通用">通用</button>
+                  <button class="chip chip-button" type="button" data-metric-filter="NL2SQL">NL2SQL</button>
+                  <button class="chip chip-button" type="button" data-metric-filter="NL2CHART">NL2CHART</button>
+                  <button class="chip chip-button" type="button" data-metric-filter="报告多轮交互">报告多轮交互</button>
+                </div>
+              </div>
               <div class="panel-actions">
-                <button class="ghost">新增参数组合</button>
-                <button class="primary">编辑</button>
+                <button class="ghost" type="button" data-open-metric-modal>新增参数组合</button>
+                <button class="primary" type="button" data-edit-metric-set>编辑</button>
               </div>
             </div>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>参数集名称</th>
-                  <th>描述</th>
-                  <th>覆盖指标/阈值</th>
-                  <th>最近更新</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>标准评测</td>
-                  <td>默认阈值与权重</td>
-                  <td>模板 0.9 / 参数 0.8</td>
-                  <td>2026-03-16</td>
-                </tr>
-                <tr>
-                  <td>严格评测</td>
-                  <td>偏向内容断言与完成度</td>
-                  <td>内容 0.9 / 完成度 0.85</td>
-                  <td>2026-03-14</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="metric-layout">
+              <div class="metric-set-list" data-metric-set-list>
+                <button class="metric-set-card active" type="button" data-metric-set-card="metric-nl2sql-exec">
+                  <div class="metric-set-card-top">
+                    <span class="chip">NL2SQL</span>
+                    <span class="metric-score-chip">门槛 0.84</span>
+                  </div>
+                  <div class="metric-set-card-title">NL2SQL 执行可靠性</div>
+                  <div class="metric-set-card-desc">执行准确率、测试套件准确率、可执行率、结果稳定率。</div>
+                </button>
+                <button class="metric-set-card" type="button" data-metric-set-card="metric-nl2chart-fidelity">
+                  <div class="metric-set-card-top">
+                    <span class="chip">NL2CHART</span>
+                    <span class="metric-score-chip">门槛 0.83</span>
+                  </div>
+                  <div class="metric-set-card-title">NL2CHART 图表保真</div>
+                  <div class="metric-set-card-desc">渲染成功率、图表类型准确率、字段绑定 F1、图表结构保真分。</div>
+                </button>
+                <button class="metric-set-card" type="button" data-metric-set-card="metric-report-dialogue">
+                  <div class="metric-set-card-top">
+                    <span class="chip">报告多轮交互</span>
+                    <span class="metric-score-chip">门槛 0.85</span>
+                  </div>
+                  <div class="metric-set-card-title">报告多轮交互生成</div>
+                  <div class="metric-set-card-desc">模板 Top1 命中率、任务成功率、事实精度与轮次效率。</div>
+                </button>
+              </div>
+              <div class="metric-detail-panel" data-metric-set-detail>
+                <div class="metric-detail-header">
+                  <div>
+                    <div class="metric-detail-eyebrow">行业化指标组合</div>
+                    <h3 data-metric-detail-name>NL2SQL 执行可靠性</h3>
+                  </div>
+                  <div class="metric-detail-meta">
+                    <span class="chip" data-metric-detail-scenario>NL2SQL</span>
+                    <span class="metric-score-chip" data-metric-detail-threshold>发布门槛 0.84</span>
+                  </div>
+                </div>
+                <p class="metric-detail-description" data-metric-detail-description>
+                  参照 Spider/BIRD 的执行导向评测，强调执行结果正确而非 SQL 字符串命中。
+                </p>
+                <div class="analysis-grid metric-overview-grid">
+                  <div class="analysis-card">
+                    <div class="analysis-label">总分公式</div>
+                    <div class="analysis-value" data-metric-detail-formula>weighted_sum_with_gates</div>
+                  </div>
+                  <div class="analysis-card">
+                    <div class="analysis-label">硬门禁个数</div>
+                    <div class="analysis-value" data-metric-detail-hard-gate-count>3</div>
+                  </div>
+                </div>
+                <div class="metric-benchmark-block">
+                  <div class="subtle-title">参考基线</div>
+                  <div class="metric-benchmark-list" data-metric-benchmark-list>
+                    <a class="metric-benchmark-item" href="https://spider2-sql.github.io/" target="_blank" rel="noreferrer">
+                      <strong>Spider 2.0</strong>
+                      <span>真实企业级 text-to-SQL 成功率基线</span>
+                    </a>
+                    <a class="metric-benchmark-item" href="https://bird-bench.github.io/" target="_blank" rel="noreferrer">
+                      <strong>BIRD-SQL</strong>
+                      <span>执行准确率为核心的 text-to-SQL benchmark</span>
+                    </a>
+                  </div>
+                </div>
+                <div class="metric-dimension-block">
+                  <div class="subtle-title">指标维度</div>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>指标</th>
+                        <th>度量方式</th>
+                        <th>权重</th>
+                        <th>合格阈值</th>
+                        <th>硬门禁</th>
+                        <th>业务意义</th>
+                      </tr>
+                    </thead>
+                    <tbody data-metric-dimension-body>
+                      <tr>
+                        <td>执行准确率</td>
+                        <td>执行结果与标准结果一致的 case 占比</td>
+                        <td>0.45</td>
+                        <td>0.85</td>
+                        <td>是</td>
+                        <td>直接衡量查询答案是否正确</td>
+                      </tr>
+                      <tr>
+                        <td>测试套件准确率</td>
+                        <td>通过等价 SQL 测试套件的 case 占比</td>
+                        <td>0.30</td>
+                        <td>0.80</td>
+                        <td>是</td>
+                        <td>避免只命中某一种 SQL 形式</td>
+                      </tr>
+                      <tr>
+                        <td>可执行率</td>
+                        <td>生成 SQL 可以无异常执行的 case 占比</td>
+                        <td>0.15</td>
+                        <td>0.98</td>
+                        <td>是</td>
+                        <td>减少线上报错和空结果</td>
+                      </tr>
+                      <tr>
+                        <td>结果稳定率</td>
+                        <td>重复执行结果 hash 一致的 case 占比</td>
+                        <td>0.10</td>
+                        <td>0.95</td>
+                        <td>否</td>
+                        <td>防止非确定性输出影响体验</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -790,7 +907,7 @@
             </label>
             <label class="form-field">
               <span class="filter-label">用例集</span>
-              <select class="filter-select" name="case_set_id" required>
+              <select class="filter-select" name="case_set_id" data-task-case-set-select required>
                 <option value="">请选择</option>
                 <option value="cs-nl2sql">零售 NL2SQL 基准</option>
                 <option value="cs-nl2chart">零售 NL2CHART 基准</option>
@@ -808,7 +925,7 @@
             </label>
             <label class="form-field">
               <span class="filter-label">指标参数集</span>
-              <select class="filter-select" name="metric_set_id" required>
+              <select class="filter-select" name="metric_set_id" data-task-metric-select required>
                 <option value="">请选择</option>
                 <option value="metric-default">标准评测</option>
                 <option value="metric-strict">严格评测</option>
@@ -874,6 +991,71 @@
           <div class="modal-footer">
             <button class="ghost" type="button" data-close-schedule-modal>取消</button>
             <button class="primary" type="submit" data-schedule-submit>创建定时任务</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="modal hidden" id="metric-modal" role="dialog" aria-modal="true">
+      <div class="modal-backdrop" data-close-metric-modal></div>
+      <div class="modal-card modal-card-wide">
+        <div class="modal-header">
+          <h3 data-metric-modal-title>新增参数组合</h3>
+          <button class="modal-close" type="button" data-close-metric-modal>×</button>
+        </div>
+        <form class="modal-body" id="metric-form">
+          <div class="form-grid form-grid-wide">
+            <label class="form-field">
+              <span class="filter-label">参数集名称</span>
+              <input class="filter-input metric-text-input" name="name" data-metric-form-name type="text" placeholder="例如：NL2SQL 发布门禁 - 自定义" required />
+            </label>
+            <label class="form-field">
+              <span class="filter-label">适用任务</span>
+              <select class="filter-select" name="scenario_type" data-metric-form-scenario required>
+                <option value="通用">通用</option>
+                <option value="NL2SQL">NL2SQL</option>
+                <option value="NL2CHART">NL2CHART</option>
+                <option value="报告多轮交互">报告多轮交互</option>
+                <option value="智能问数">智能问数</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="filter-label">基于模板</span>
+              <select class="filter-select" name="template_metric_set_id" data-metric-template-select>
+                <option value="metric-nl2sql-exec">NL2SQL 执行可靠性</option>
+                <option value="metric-nl2chart-fidelity">NL2CHART 图表保真</option>
+                <option value="metric-report-dialogue">报告多轮交互生成</option>
+                <option value="metric-default">ChatBI 通用发布基线</option>
+                <option value="metric-strict">ChatBI 严格发布门禁</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="filter-label">发布门槛</span>
+              <input class="filter-input" name="pass_threshold" data-metric-form-threshold type="number" min="0" max="1" step="0.01" value="0.84" required />
+            </label>
+            <label class="form-field form-field-full">
+              <span class="filter-label">描述</span>
+              <textarea class="metric-textarea" name="description" data-metric-form-description placeholder="说明这套指标适用于什么场景，以及为什么这么配。"></textarea>
+            </label>
+          </div>
+          <div class="metric-edit-block">
+            <div class="subtle-title">维度权重与阈值</div>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>指标</th>
+                  <th>度量方式</th>
+                  <th>权重</th>
+                  <th>合格阈值</th>
+                  <th>硬门禁</th>
+                </tr>
+              </thead>
+              <tbody data-metric-edit-body></tbody>
+            </table>
+          </div>
+          <div class="modal-error hidden" data-metric-error>请填写所有必填项</div>
+          <div class="modal-footer">
+            <button class="ghost" type="button" data-close-metric-modal>取消</button>
+            <button class="primary" type="submit" data-metric-submit>保存参数组合</button>
           </div>
         </form>
       </div>

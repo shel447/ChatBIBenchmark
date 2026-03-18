@@ -1,6 +1,9 @@
+import json
 import sqlite3
+from datetime import datetime, timezone
 from typing import List, Optional
 
+from backend.core.domain.metric_set import MetricSet
 from backend.core.domain.run import Run
 from backend.core.domain.schedule import ScheduleJob
 from backend.core.domain.task import Task
@@ -53,7 +56,320 @@ create table if not exists schedule_job (
   created_at text not null,
   updated_at text not null
 );
+
+create table if not exists metric_set (
+  metric_set_id text primary key,
+  name text not null,
+  scenario_type text not null,
+  description text not null,
+  score_formula text not null,
+  pass_threshold real not null,
+  dimensions_json text not null,
+  benchmark_refs_json text not null,
+  created_at text not null,
+  updated_at text not null
+);
 """
+
+
+SEEDED_METRIC_SETS = [
+    {
+        "metric_set_id": "metric-default",
+        "name": "ChatBI 通用发布基线",
+        "scenario_type": "通用",
+        "description": "适合作为默认上线门槛，强调结果可用、结构正确和事实一致三件事。",
+        "score_formula": "weighted_sum_with_gates",
+        "pass_threshold": 0.82,
+        "dimensions": [
+            {
+                "key": "result_utility",
+                "name": "结果可用性",
+                "measurement": "查询/图表/报告能够成功生成并可被业务消费的 case 占比",
+                "weight": 0.4,
+                "target": 0.9,
+                "hard_gate": True,
+                "business_value": "先保证系统产物能用，再谈更细粒度质量。",
+            },
+            {
+                "key": "structure_correctness",
+                "name": "结构正确性",
+                "measurement": "SQL 结果、图表结构或报告大纲与标准答案结构一致度",
+                "weight": 0.25,
+                "target": 0.82,
+                "hard_gate": True,
+                "business_value": "防止看起来有内容但结构性错误。",
+            },
+            {
+                "key": "task_success",
+                "name": "任务完成率",
+                "measurement": "在限定步骤或轮次内完成用户目标的 case 占比",
+                "weight": 0.2,
+                "target": 0.8,
+                "hard_gate": False,
+                "business_value": "衡量真实业务流程是否走通。",
+            },
+            {
+                "key": "factual_precision",
+                "name": "事实精度",
+                "measurement": "原子事实或内容断言通过率",
+                "weight": 0.15,
+                "target": 0.9,
+                "hard_gate": True,
+                "business_value": "避免最终产物出现误导性结论。",
+            },
+        ],
+        "benchmark_refs": [
+            {"title": "Spider 2.0", "url": "https://spider2-sql.github.io/", "note": "真实企业级 text-to-SQL 难度与执行成功率基线"},
+            {"title": "Text2Vis", "url": "https://arxiv.org/abs/2507.19969", "note": "文本生成可视化的代码执行、图表准确性与可读性"},
+            {"title": "MultiWOZ Evaluation", "url": "https://github.com/Tomiinek/MultiWOZ_Evaluation", "note": "任务成功率与对话任务完成度"},
+            {"title": "FActScore", "url": "https://aclanthology.org/2023.emnlp-main.741/", "note": "长文本事实精度与原子事实验证"},
+        ],
+    },
+    {
+        "metric_set_id": "metric-strict",
+        "name": "ChatBI 严格发布门禁",
+        "scenario_type": "通用",
+        "description": "用于发版前回归，抬高事实正确性和可执行性门槛。",
+        "score_formula": "weighted_sum_with_gates",
+        "pass_threshold": 0.9,
+        "dimensions": [
+            {
+                "key": "result_utility",
+                "name": "结果可用性",
+                "measurement": "查询/图表/报告能够成功生成并可被业务消费的 case 占比",
+                "weight": 0.35,
+                "target": 0.95,
+                "hard_gate": True,
+                "business_value": "严控线上不可用结果。",
+            },
+            {
+                "key": "structure_correctness",
+                "name": "结构正确性",
+                "measurement": "SQL 结果、图表结构或报告大纲与标准答案结构一致度",
+                "weight": 0.2,
+                "target": 0.88,
+                "hard_gate": True,
+                "business_value": "保证结构输出几乎无偏差。",
+            },
+            {
+                "key": "task_success",
+                "name": "任务成功率",
+                "measurement": "在限定步骤或轮次内完成用户目标的 case 占比",
+                "weight": 0.15,
+                "target": 0.85,
+                "hard_gate": False,
+                "business_value": "避免任务链路走到一半失败。",
+            },
+            {
+                "key": "factual_precision",
+                "name": "事实精度",
+                "measurement": "原子事实或内容断言通过率",
+                "weight": 0.3,
+                "target": 0.95,
+                "hard_gate": True,
+                "business_value": "发版前对事实性要求更高。",
+            },
+        ],
+        "benchmark_refs": [
+            {"title": "Spider 2.0", "url": "https://spider2-sql.github.io/", "note": "企业级 SQL 真实执行成功率"},
+            {"title": "Text2Vis", "url": "https://arxiv.org/abs/2507.19969", "note": "可视化代码执行与图表正确性"},
+            {"title": "FActScore", "url": "https://aclanthology.org/2023.emnlp-main.741/", "note": "长文本事实精度"},
+        ],
+    },
+    {
+        "metric_set_id": "metric-nl2sql-exec",
+        "name": "NL2SQL 执行可靠性",
+        "scenario_type": "NL2SQL",
+        "description": "参照 Spider/BIRD 的执行导向评测，强调执行结果正确而非 SQL 字符串命中。",
+        "score_formula": "weighted_sum_with_gates",
+        "pass_threshold": 0.84,
+        "dimensions": [
+            {
+                "key": "execution_accuracy",
+                "name": "执行准确率",
+                "measurement": "预测 SQL 执行结果与标准结果一致的 case 占比",
+                "weight": 0.45,
+                "target": 0.85,
+                "hard_gate": True,
+                "business_value": "最直接反映回答是否正确。",
+            },
+            {
+                "key": "test_suite_accuracy",
+                "name": "测试套件准确率",
+                "measurement": "通过等价 SQL 测试套件的 case 占比",
+                "weight": 0.3,
+                "target": 0.8,
+                "hard_gate": True,
+                "business_value": "避免只记住单个 SQL 形式而忽略语义等价。",
+            },
+            {
+                "key": "executable_rate",
+                "name": "可执行率",
+                "measurement": "生成 SQL 可以无异常执行的 case 占比",
+                "weight": 0.15,
+                "target": 0.98,
+                "hard_gate": True,
+                "business_value": "减少线上报错和空响应。",
+            },
+            {
+                "key": "result_stability",
+                "name": "结果稳定率",
+                "measurement": "重复执行结果 hash 一致的 case 占比",
+                "weight": 0.1,
+                "target": 0.95,
+                "hard_gate": False,
+                "business_value": "防止非确定性输出影响体验。",
+            },
+        ],
+        "benchmark_refs": [
+            {"title": "Spider 2.0", "url": "https://spider2-sql.github.io/", "note": "真实企业工作流下的成功率导向 text-to-SQL 基线"},
+            {"title": "BIRD-SQL", "url": "https://bird-bench.github.io/", "note": "执行准确率为核心的 text-to-SQL benchmark"},
+        ],
+    },
+    {
+        "metric_set_id": "metric-nl2chart-fidelity",
+        "name": "NL2CHART 图表保真",
+        "scenario_type": "NL2CHART",
+        "description": "兼顾图表能否成功渲染、图表类型是否选对，以及数据绑定与视觉结构保真度。",
+        "score_formula": "weighted_sum_with_gates",
+        "pass_threshold": 0.83,
+        "dimensions": [
+            {
+                "key": "render_success_rate",
+                "name": "渲染成功率",
+                "measurement": "图表 spec 能成功渲染的 case 占比",
+                "weight": 0.3,
+                "target": 0.98,
+                "hard_gate": True,
+                "business_value": "无渲染结果的图表没有业务价值。",
+            },
+            {
+                "key": "chart_type_accuracy",
+                "name": "图表类型准确率",
+                "measurement": "预测图表类型与标准图表类型一致的 case 占比",
+                "weight": 0.25,
+                "target": 0.9,
+                "hard_gate": True,
+                "business_value": "图表类型选错会直接误导分析。",
+            },
+            {
+                "key": "field_binding_f1",
+                "name": "字段绑定 F1",
+                "measurement": "x/y/series/filter 等字段绑定与标准答案的 F1",
+                "weight": 0.25,
+                "target": 0.85,
+                "hard_gate": False,
+                "business_value": "保证图表承载的是对的数据关系。",
+            },
+            {
+                "key": "chart_fidelity_score",
+                "name": "图表结构保真分",
+                "measurement": "基于 spec 树或渲染结果的结构/视觉保真度评分",
+                "weight": 0.2,
+                "target": 0.8,
+                "hard_gate": False,
+                "business_value": "避免图表虽然能渲染，但表达效果走样。",
+            },
+        ],
+        "benchmark_refs": [
+            {"title": "Text2Vis", "url": "https://arxiv.org/abs/2507.19969", "note": "answer correctness、code execution success、chart accuracy、readability"},
+            {"title": "Chart2Code", "url": "https://arxiv.org/abs/2510.17932", "note": "code-based evaluation 与 chart-quality assessment"},
+        ],
+    },
+    {
+        "metric_set_id": "metric-report-dialogue",
+        "name": "报告多轮交互生成",
+        "scenario_type": "报告多轮交互",
+        "description": "覆盖模板选择、参数收集、多轮完成、报告结构和内容事实精度。",
+        "score_formula": "weighted_sum_with_gates",
+        "pass_threshold": 0.85,
+        "dimensions": [
+            {
+                "key": "template_top1_accuracy",
+                "name": "模板 Top1 命中率",
+                "measurement": "选中的模板与标准模板一致的 case 占比",
+                "weight": 0.2,
+                "target": 0.9,
+                "hard_gate": True,
+                "business_value": "模板选错时后续参数与内容都容易错位。",
+            },
+            {
+                "key": "param_slot_f1",
+                "name": "参数槽位 F1",
+                "measurement": "参数填充结果与标准参数的精确率/召回率综合",
+                "weight": 0.25,
+                "target": 0.85,
+                "hard_gate": True,
+                "business_value": "参数是报告生成的关键信号源。",
+            },
+            {
+                "key": "task_success_rate",
+                "name": "任务成功率",
+                "measurement": "在限定轮次内完成参数收集并生成报告的 case 占比",
+                "weight": 0.2,
+                "target": 0.8,
+                "hard_gate": True,
+                "business_value": "衡量用户目标是否真正完成。",
+            },
+            {
+                "key": "turn_efficiency",
+                "name": "轮次效率",
+                "measurement": "5 轮内完成的 case 占比",
+                "weight": 0.1,
+                "target": 0.75,
+                "hard_gate": False,
+                "business_value": "避免对话拖沓影响体验。",
+            },
+            {
+                "key": "outline_structure_f1",
+                "name": "大纲结构 F1",
+                "measurement": "章节节点覆盖与层级顺序的结构 F1",
+                "weight": 0.1,
+                "target": 0.8,
+                "hard_gate": False,
+                "business_value": "保证报告骨架合理完整。",
+            },
+            {
+                "key": "factual_precision",
+                "name": "事实精度",
+                "measurement": "内容断言或原子事实通过率",
+                "weight": 0.15,
+                "target": 0.9,
+                "hard_gate": True,
+                "business_value": "报告内容必须经得起事实核验。",
+            },
+        ],
+        "benchmark_refs": [
+            {"title": "MultiWOZ Evaluation", "url": "https://github.com/Tomiinek/MultiWOZ_Evaluation", "note": "Inform/Success 与 DST slot precision/recall/F1"},
+            {"title": "FActScore", "url": "https://aclanthology.org/2023.emnlp-main.741/", "note": "长文本原子事实精度"},
+        ],
+    },
+]
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
+
+
+def _seed_metric_sets(conn: sqlite3.Connection) -> None:
+    now = _utc_now()
+    for item in SEEDED_METRIC_SETS:
+        conn.execute(
+            "insert into metric_set(metric_set_id, name, scenario_type, description, score_formula, pass_threshold, dimensions_json, benchmark_refs_json, created_at, updated_at) "
+            "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (
+                item["metric_set_id"],
+                item["name"],
+                item["scenario_type"],
+                item["description"],
+                item["score_formula"],
+                item["pass_threshold"],
+                json.dumps(item["dimensions"], ensure_ascii=False),
+                json.dumps(item["benchmark_refs"], ensure_ascii=False),
+                now,
+                now,
+            ),
+        )
 
 
 def _connect(db_path: str) -> sqlite3.Connection:
@@ -75,6 +391,9 @@ def init_run_db(db_path: str) -> None:
         _ensure_column(conn, "eval_run", "task_id", "text")
         _ensure_column(conn, "eval_run", "trigger_source", "text not null default 'legacy'")
         _ensure_column(conn, "eval_run", "execution_status", "text not null default 'running'")
+        cur = conn.execute("select count(1) from metric_set")
+        if cur.fetchone()[0] == 0:
+            _seed_metric_sets(conn)
         conn.commit()
     finally:
         conn.close()
@@ -129,6 +448,21 @@ def _schedule_from_row(row) -> ScheduleJob:
         next_triggered_at=row[9],
         created_at=row[10],
         updated_at=row[11],
+    )
+
+
+def _metric_set_from_row(row) -> MetricSet:
+    return MetricSet(
+        metric_set_id=row[0],
+        name=row[1],
+        scenario_type=row[2],
+        description=row[3],
+        score_formula=row[4],
+        pass_threshold=row[5],
+        dimensions=json.loads(row[6] or "[]"),
+        benchmark_refs=json.loads(row[7] or "[]"),
+        created_at=row[8],
+        updated_at=row[9],
     )
 
 
@@ -402,3 +736,81 @@ class SqliteScheduleRepository:
         finally:
             conn.close()
         return _schedule_from_row(row) if row else None
+
+
+class SqliteMetricSetRepository:
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        init_run_db(db_path)
+
+    def list(self) -> List[MetricSet]:
+        conn = _connect(self.db_path)
+        try:
+            cur = conn.execute(
+                "select metric_set_id, name, scenario_type, description, score_formula, pass_threshold, dimensions_json, benchmark_refs_json, created_at, updated_at "
+                "from metric_set order by scenario_type asc, created_at asc"
+            )
+            rows = cur.fetchall()
+        finally:
+            conn.close()
+        return [_metric_set_from_row(row) for row in rows]
+
+    def get(self, metric_set_id: str) -> Optional[MetricSet]:
+        conn = _connect(self.db_path)
+        try:
+            cur = conn.execute(
+                "select metric_set_id, name, scenario_type, description, score_formula, pass_threshold, dimensions_json, benchmark_refs_json, created_at, updated_at "
+                "from metric_set where metric_set_id = ?",
+                (metric_set_id,),
+            )
+            row = cur.fetchone()
+        finally:
+            conn.close()
+        return _metric_set_from_row(row) if row else None
+
+    def create(self, metric_set: MetricSet) -> MetricSet:
+        conn = _connect(self.db_path)
+        try:
+            conn.execute(
+                "insert into metric_set(metric_set_id, name, scenario_type, description, score_formula, pass_threshold, dimensions_json, benchmark_refs_json, created_at, updated_at) "
+                "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    metric_set.metric_set_id,
+                    metric_set.name,
+                    metric_set.scenario_type,
+                    metric_set.description,
+                    metric_set.score_formula,
+                    metric_set.pass_threshold,
+                    json.dumps(metric_set.dimensions, ensure_ascii=False),
+                    json.dumps(metric_set.benchmark_refs, ensure_ascii=False),
+                    metric_set.created_at,
+                    metric_set.updated_at,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        return metric_set
+
+    def update(self, metric_set: MetricSet) -> MetricSet:
+        conn = _connect(self.db_path)
+        try:
+            conn.execute(
+                "update metric_set set name = ?, scenario_type = ?, description = ?, score_formula = ?, pass_threshold = ?, dimensions_json = ?, benchmark_refs_json = ?, created_at = ?, updated_at = ? where metric_set_id = ?",
+                (
+                    metric_set.name,
+                    metric_set.scenario_type,
+                    metric_set.description,
+                    metric_set.score_formula,
+                    metric_set.pass_threshold,
+                    json.dumps(metric_set.dimensions, ensure_ascii=False),
+                    json.dumps(metric_set.benchmark_refs, ensure_ascii=False),
+                    metric_set.created_at,
+                    metric_set.updated_at,
+                    metric_set.metric_set_id,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        return metric_set
