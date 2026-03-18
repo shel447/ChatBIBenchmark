@@ -135,6 +135,7 @@ def _schedule_from_row(row) -> ScheduleJob:
 class SqliteTaskRepository:
     def __init__(self, db_path: str):
         self.db_path = db_path
+        init_run_db(db_path)
 
     def create(self, task: Task) -> Task:
         conn = _connect(self.db_path)
@@ -215,6 +216,7 @@ class SqliteTaskRepository:
 class SqliteRunRepository:
     def __init__(self, db_path: str):
         self.db_path = db_path
+        init_run_db(db_path)
 
     def create(self, run: Run) -> Run:
         conn = _connect(self.db_path)
@@ -288,6 +290,7 @@ class SqliteRunRepository:
 class SqliteScheduleRepository:
     def __init__(self, db_path: str):
         self.db_path = db_path
+        init_run_db(db_path)
 
     def create(self, schedule: ScheduleJob) -> ScheduleJob:
         conn = _connect(self.db_path)

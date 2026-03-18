@@ -61,6 +61,28 @@ class TaskScheduleApiTests(unittest.TestCase):
             self.assertEqual(runs_resp.status_code, 200)
             self.assertEqual(runs_resp.json()["runs"], [])
 
+    def test_task_and_schedule_routes_initialize_db_without_lifespan_context(self):
+        payload = {
+            "name": "零售待执行任务",
+            "case_set_id": "cs-nl2sql",
+            "environment_id": "env-staging",
+            "metric_set_id": "metric-default",
+            "repeat_count": 1,
+            "launch_mode": "deferred",
+        }
+        client = TestClient(app_module.app)
+        tasks_resp = client.get("/api/tasks")
+        self.assertEqual(tasks_resp.status_code, 200)
+        self.assertEqual(tasks_resp.json()["tasks"], [])
+
+        schedules_resp = client.get("/api/schedules")
+        self.assertEqual(schedules_resp.status_code, 200)
+        self.assertEqual(schedules_resp.json()["schedules"], [])
+
+        create_resp = client.post("/api/tasks", json=payload)
+        self.assertEqual(create_resp.status_code, 200)
+        self.assertEqual(create_resp.json()["task"]["launch_mode"], "deferred")
+
     def test_post_runs_acts_as_immediate_task_compat_alias(self):
         payload = {
             "name": "零售立即执行任务",
