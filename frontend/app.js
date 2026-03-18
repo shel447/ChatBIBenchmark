@@ -1,6 +1,5 @@
 const navButtons = document.querySelectorAll("[data-view-target]");
 const views = document.querySelectorAll("[data-view]");
-const typeSelect = document.querySelector("[data-case-type]");
 const typePanels = document.querySelectorAll("[data-type-panel]");
 
 const taskModal = document.getElementById("run-modal");
@@ -61,7 +60,29 @@ const caseListBody = document.querySelector("[data-case-list-body]");
 const updateCaseSetButton = document.querySelector("[data-update-case-set]");
 const exportCurrentCaseSetButton = document.querySelector("[data-export-current-case-set]");
 const caseSetFileInput = document.querySelector("[data-case-set-file-input]");
-
+const caseDetailHeading = document.querySelector("[data-case-detail-heading]");
+const caseDetailTypeChip = document.querySelector("[data-case-detail-type-chip]");
+const caseDetailCaseSet = document.querySelector("[data-case-detail-case-set]");
+const caseDetailCaseId = document.querySelector("[data-case-detail-case-id]");
+const caseDetailTitle = document.querySelector("[data-case-detail-title]");
+const caseDetailType = document.querySelector("[data-case-detail-type]");
+const caseDetailDifficulty = document.querySelector("[data-case-detail-difficulty]");
+const caseDetailStatus = document.querySelector("[data-case-detail-status]");
+const caseDetailPanelHeading = document.querySelector("[data-case-detail-panel-heading]");
+const caseDetailSmartQuestion = document.querySelector("[data-case-detail-smart-question]");
+const caseDetailSmartSql = document.querySelector("[data-case-detail-smart-sql]");
+const caseDetailSmartChartType = document.querySelector("[data-case-detail-smart-chart-type]");
+const caseDetailNl2SqlQuestion = document.querySelector("[data-case-detail-nl2sql-question]");
+const caseDetailNl2SqlSql = document.querySelector("[data-case-detail-nl2sql-sql]");
+const caseDetailNl2ChartQuestion = document.querySelector("[data-case-detail-nl2chart-question]");
+const caseDetailNl2ChartSql = document.querySelector("[data-case-detail-nl2chart-sql]");
+const caseDetailNl2ChartType = document.querySelector("[data-case-detail-nl2chart-chart-type]");
+const caseDetailReportUserGoal = document.querySelector("[data-case-detail-report-user-goal]");
+const caseDetailReportTemplateName = document.querySelector("[data-case-detail-report-template-name]");
+const caseDetailReportDialogueScript = document.querySelector("[data-case-detail-report-dialogue-script]");
+const caseDetailReportParamGroundTruth = document.querySelector("[data-case-detail-report-param-ground-truth]");
+const caseDetailReportOutlineGroundTruth = document.querySelector("[data-case-detail-report-outline-ground-truth]");
+const caseDetailReportContentAssertions = document.querySelector("[data-case-detail-report-content-assertions]");
 const metricSummaryCount = document.querySelector("[data-metric-summary-count]");
 const metricSummaryScenarios = document.querySelector("[data-metric-summary-scenarios]");
 const metricSummaryHardGates = document.querySelector("[data-metric-summary-hard-gates]");
@@ -112,6 +133,8 @@ const metricExecutionStatusLabels = {
 
 let currentCaseSetId = "cs-nl2sql";
 let currentCaseSetDetail = null;
+let currentCaseId = null;
+let currentCaseDetail = null;
 let exportMode = false;
 const selectedCaseSetIds = new Set();
 
@@ -132,6 +155,12 @@ const caseSetTypeMap = {
   "cs-report": "报告多轮交互",
 };
 
+const caseTypePanelMap = {
+  NL2SQL: "nl2sql",
+  NL2CHART: "nl2chart",
+  智能问数: "smart-qa",
+  报告多轮交互: "report-multi",
+};
 function activateView(target) {
   views.forEach((view) => {
     view.classList.toggle("active", view.dataset.view === target);
@@ -177,6 +206,66 @@ function escapeHtml(value) {
 
 function labelFor(map, value, fallback = "-") {
   return map[value] || value || fallback;
+}
+
+function caseSetTypeToPanelType(caseSetType) {
+  return caseTypePanelMap[caseSetType] || "nl2sql";
+}
+
+function normalizeDetailText(value) {
+  if (value === null || value === undefined || value === "") {
+    return "-";
+  }
+  return String(value);
+}
+
+function formatStructuredValue(value) {
+  if (value === null || value === undefined || value === "") {
+    return "暂无数据";
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch (error) {
+    return String(value);
+  }
+}
+
+function setDetailText(node, value) {
+  if (node) {
+    node.textContent = normalizeDetailText(value);
+  }
+}
+
+function setStructuredDetailText(node, value) {
+  if (node) {
+    node.textContent = formatStructuredValue(value);
+  }
+}
+
+function getCaseDifficultyLabel(index) {
+  return difficultyLabels[index % difficultyLabels.length] || "-";
+}
+
+function getCaseStatusLabel(isSeed) {
+  return isSeed ? "不可评测" : "待评测";
+}
+
+function findCurrentCaseEntry(caseId) {
+  if (!currentCaseSetDetail?.cases?.length) {
+    return null;
+  }
+  const index = currentCaseSetDetail.cases.findIndex((item) => item.case_id === caseId);
+  if (index < 0) {
+    return null;
+  }
+  return {
+    caseItem: currentCaseSetDetail.cases[index],
+    index,
+    caseSet: currentCaseSetDetail.case_set,
+  };
 }
 
 function metricExecutionStatusLabel(metricSet) {
@@ -458,10 +547,10 @@ async function importCaseSetFile(caseSetId, file) {
 }
 
 function buildCaseRow(caseItem, index, isSeed) {
-  const difficulty = difficultyLabels[index % difficultyLabels.length];
-  const status = isSeed ? "不可评测" : "待评测";
+  const difficulty = getCaseDifficultyLabel(index);
+  const status = getCaseStatusLabel(isSeed);
   return `
-    <tr class="row-link" data-view-link="case-detail">
+    <tr class="row-link" data-view-link="case-detail" data-case-id="${escapeHtml(caseItem.case_id)}">
       <td>${escapeHtml(caseItem.case_id)}</td>
       <td>${escapeHtml(caseItem.title || caseItem.case_id)}</td>
       <td>${escapeHtml(difficulty)}</td>
@@ -488,6 +577,8 @@ function renderCaseSetDetail(detail) {
   const caseSet = detail.case_set;
   const cases = detail.cases || [];
   currentCaseSetDetail = detail;
+  currentCaseId = null;
+  currentCaseDetail = null;
   if (caseSetHeading) {
     caseSetHeading.textContent = `用例列表：${caseSet.name}`;
   }
@@ -514,10 +605,59 @@ function renderCaseSetDetail(detail) {
   updateCaseSetCardMeta(caseSet, cases.length);
 }
 
+function renderCaseDetail(caseId) {
+  const entry = findCurrentCaseEntry(caseId);
+  if (!entry) {
+    return false;
+  }
+  const { caseItem, index, caseSet } = entry;
+  const payload = caseItem.payload || {};
+  const caseType = caseSet?.type || caseSetTypeMap[caseSet?.id] || "NL2SQL";
+  const panelType = caseSetTypeToPanelType(caseType);
+  const difficulty = getCaseDifficultyLabel(index);
+  const status = getCaseStatusLabel(Boolean(caseSet?.is_seed));
+
+  currentCaseId = caseId;
+  currentCaseDetail = caseItem;
+
+  setDetailText(caseDetailHeading, `用例详情：${caseItem.case_id}`);
+  setDetailText(caseDetailTypeChip, caseType);
+  setDetailText(caseDetailCaseSet, caseSet?.name);
+  setDetailText(caseDetailCaseId, caseItem.case_id);
+  setDetailText(caseDetailTitle, caseItem.title || caseItem.case_id);
+  setDetailText(caseDetailType, caseType);
+  setDetailText(caseDetailDifficulty, difficulty);
+  setDetailText(caseDetailStatus, status);
+  setDetailText(caseDetailPanelHeading, `${caseType} 详情`);
+
+  setDetailText(caseDetailSmartQuestion, payload.question);
+  setStructuredDetailText(caseDetailSmartSql, payload.expected_sql);
+  setDetailText(caseDetailSmartChartType, payload.expected_chart_type);
+
+  setDetailText(caseDetailNl2SqlQuestion, payload.question);
+  setStructuredDetailText(caseDetailNl2SqlSql, payload.expected_sql);
+
+  setDetailText(caseDetailNl2ChartQuestion, payload.question);
+  setStructuredDetailText(caseDetailNl2ChartSql, payload.sql);
+  setDetailText(caseDetailNl2ChartType, payload.expected_chart_type);
+
+  setDetailText(caseDetailReportUserGoal, payload.user_goal);
+  setDetailText(caseDetailReportTemplateName, payload.template_name);
+  setStructuredDetailText(caseDetailReportDialogueScript, payload.dialogue_script);
+  setStructuredDetailText(caseDetailReportParamGroundTruth, payload.param_ground_truth);
+  setStructuredDetailText(caseDetailReportOutlineGroundTruth, payload.outline_ground_truth);
+  setStructuredDetailText(caseDetailReportContentAssertions, payload.content_assertions);
+
+  activateTypePanel(panelType);
+  return true;
+}
+
 async function loadCaseSetDetail(caseSetId, options = {}) {
   const requestedCaseSetId = caseSetId || currentCaseSetId;
   const preserveFeedback = Boolean(options.preserveFeedback);
   currentCaseSetId = requestedCaseSetId;
+  currentCaseId = null;
+  currentCaseDetail = null;
   if (!preserveFeedback) {
     clearCaseSetFeedback();
   }
@@ -1047,13 +1187,6 @@ function syncScheduleTypeFields(type) {
   }
 }
 
-if (typeSelect) {
-  activateTypePanel(typeSelect.value);
-  typeSelect.addEventListener("change", (event) => {
-    activateTypePanel(event.target.value);
-  });
-}
-
 navButtons.forEach((button) => {
   button.addEventListener("click", () => {
     activateView(button.dataset.viewTarget);
@@ -1085,6 +1218,17 @@ document.addEventListener("click", (event) => {
       currentCaseSetId = caseSetId;
       void loadCaseSetDetail(caseSetId);
     }
+    activateView(link.dataset.viewLink);
+    return;
+  }
+
+  const caseId = link.dataset.caseId;
+  if (caseId) {
+    if (!renderCaseDetail(caseId)) {
+      return;
+    }
+    activateView("case-detail");
+    return;
   }
 
   const taskId = link.dataset.taskId;
