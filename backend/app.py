@@ -1,13 +1,15 @@
 import json
 import os
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 
 from .core.evaluator import evaluate_report_case
+from .core.usecases.case_set_usecases import export_case_set, get_case_set_detail, import_case_set, list_case_sets
 from .core.usecases.run_usecases import create_run, get_run, list_runs
 from .adapters.sqlite_adapter import SQLiteAdapter
+from .storage.case_set_repository import SqliteCaseSetRepository, init_case_set_db
 from .storage.sqlite_store import init_db, save_run, save_case_result
 from .storage.run_repository import SqliteRunRepository, init_run_db
 
@@ -16,6 +18,7 @@ FRONTEND_DIR = os.path.abspath(os.path.join(APP_DIR, "..", "frontend"))
 DATA_DIR = os.path.join(APP_DIR, "data")
 DEFAULT_META_DB = os.path.join(APP_DIR, "report_eval.db")
 DEFAULT_RUN_DB = os.path.join(APP_DIR, "runs.db")
+DEFAULT_CASE_SET_DB = os.path.join(APP_DIR, "case_sets.db")
 
 app = FastAPI(title="ChatBI Report Eval")
 app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
@@ -25,6 +28,7 @@ app.mount("/frontend", StaticFiles(directory=FRONTEND_DIR, html=True), name="fro
 async def _startup():
     init_db(DEFAULT_META_DB)
     init_run_db(DEFAULT_RUN_DB)
+    init_case_set_db(DEFAULT_CASE_SET_DB)
 
 
 def _load_json(path):
@@ -52,6 +56,48 @@ async def list_templates():
 async def list_cases():
     path = os.path.join(DATA_DIR, "report_cases.sample.json")
     return _load_json(path)
+
+
+@app.get("/api/case-sets")
+async def list_case_sets_api():
+    repo = SqliteCaseSetRepository(DEFAULT_CASE_SET_DB)
+    return {"case_sets": list_case_sets(repo)}
+
+
+@app.get("/api/case-sets/{case_set_id}")
+async def get_case_set_api(case_set_id: str):
+    repo = SqliteCaseSetRepository(DEFAULT_CASE_SET_DB)
+    detail = get_case_set_detail(repo, case_set_id)
+    if not detail:
+        raise HTTPException(status_code=404, detail="case_set not found")
+    return detail
+
+
+@app.get("/api/case-sets/{case_set_id}/export")
+async def export_case_set_api(case_set_id: str):
+    repo = SqliteCaseSetRepository(DEFAULT_CASE_SET_DB)
+    result = export_case_set(repo, case_set_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="case_set not found")
+    _, content = result
+    return Response(
+        content=content,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{case_set_id}.xlsx"'},
+    )
+
+
+@app.post("/api/case-sets/{case_set_id}/import")
+async def import_case_set_api(case_set_id: str, file: UploadFile = File(...)):
+    repo = SqliteCaseSetRepository(DEFAULT_CASE_SET_DB)
+    try:
+        content = await file.read()
+        detail = import_case_set(repo, case_set_id, content)
+        if not detail:
+            raise HTTPException(status_code=404, detail="case_set not found")
+        return detail
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/api/runs")
