@@ -74,8 +74,11 @@ const metricDetailThreshold = document.querySelector("[data-metric-detail-thresh
 const metricDetailDescription = document.querySelector("[data-metric-detail-description]");
 const metricDetailFormula = document.querySelector("[data-metric-detail-formula]");
 const metricDetailHardGateCount = document.querySelector("[data-metric-detail-hard-gate-count]");
+const metricDetailExecutionStatus = document.querySelector("[data-metric-detail-execution-status]");
+const metricDetailStatusLabel = document.querySelector("[data-metric-detail-status-label]");
 const metricBenchmarkList = document.querySelector("[data-metric-benchmark-list]");
 const metricDimensionBody = document.querySelector("[data-metric-dimension-body]");
+const metricMappingBody = document.querySelector("[data-metric-mapping-body]");
 const openMetricModalButton = document.querySelector("[data-open-metric-modal]");
 const editMetricSetButton = document.querySelector("[data-edit-metric-set]");
 const metricModal = document.getElementById("metric-modal");
@@ -101,6 +104,10 @@ const triggerSourceLabels = {
   manual: "手动执行",
   schedule: "定时触发",
   legacy: "历史记录",
+};
+const metricExecutionStatusLabels = {
+  active: "已接入执行",
+  planned: "仅配置",
 };
 
 let currentCaseSetId = "cs-nl2sql";
@@ -170,6 +177,10 @@ function escapeHtml(value) {
 
 function labelFor(map, value, fallback = "-") {
   return map[value] || value || fallback;
+}
+
+function metricExecutionStatusLabel(metricSet) {
+  return labelFor(metricExecutionStatusLabels, metricSet?.execution_status?.status, "仅配置");
 }
 
 function statusChip(value, labelMap) {
@@ -577,16 +588,19 @@ function renderMetricSetList(metricSets) {
   }
   metricSetList.innerHTML = metricSets
     .map(
-      (metricSet) => `
-        <button class="metric-set-card ${metricSet.metric_set_id === currentMetricSetId ? "active" : ""}" type="button" data-metric-set-card="${escapeHtml(metricSet.metric_set_id)}">
-          <div class="metric-set-card-top">
-            <span class="chip">${escapeHtml(metricSet.scenario_type)}</span>
-            <span class="metric-score-chip">门槛 ${escapeHtml(Number(metricSet.pass_threshold).toFixed(2))}</span>
-          </div>
-          <div class="metric-set-card-title">${escapeHtml(metricSet.name)}</div>
-          <div class="metric-set-card-desc">${escapeHtml(metricSet.description)}</div>
-        </button>
-      `,
+        (metricSet) => `
+          <button class="metric-set-card ${metricSet.metric_set_id === currentMetricSetId ? "active" : ""}" type="button" data-metric-set-card="${escapeHtml(metricSet.metric_set_id)}">
+            <div class="metric-set-card-top">
+              <span class="chip">${escapeHtml(metricSet.scenario_type)}</span>
+              <div class="metric-card-meta">
+                <span class="metric-status-chip ${escapeHtml(metricSet.execution_status?.status || "planned")}">${escapeHtml(metricExecutionStatusLabel(metricSet))}</span>
+                <span class="metric-score-chip">门槛 ${escapeHtml(Number(metricSet.pass_threshold).toFixed(2))}</span>
+              </div>
+            </div>
+            <div class="metric-set-card-title">${escapeHtml(metricSet.name)}</div>
+            <div class="metric-set-card-desc">${escapeHtml(metricSet.description)}</div>
+          </button>
+        `,
     )
     .join("");
 }
@@ -604,6 +618,10 @@ function renderMetricSetDetail(metricSet) {
   if (metricDetailThreshold) {
     metricDetailThreshold.textContent = `发布门槛 ${Number(metricSet.pass_threshold).toFixed(2)}`;
   }
+  if (metricDetailExecutionStatus) {
+    metricDetailExecutionStatus.textContent = metricExecutionStatusLabel(metricSet);
+    metricDetailExecutionStatus.className = `metric-status-chip ${metricSet.execution_status?.status || "planned"}`;
+  }
   if (metricDetailDescription) {
     metricDetailDescription.textContent = metricSet.description;
   }
@@ -613,6 +631,9 @@ function renderMetricSetDetail(metricSet) {
   if (metricDetailHardGateCount) {
     metricDetailHardGateCount.textContent = String(countHardGates(metricSet));
   }
+  if (metricDetailStatusLabel) {
+    metricDetailStatusLabel.textContent = metricExecutionStatusLabel(metricSet);
+  }
   if (metricBenchmarkList) {
     metricBenchmarkList.innerHTML = (metricSet.benchmark_refs || [])
       .map(
@@ -621,6 +642,21 @@ function renderMetricSetDetail(metricSet) {
             <strong>${escapeHtml(item.title || "-")}</strong>
             <span>${escapeHtml(item.note || "")}</span>
           </a>
+        `,
+        )
+        .join("");
+  }
+  if (metricMappingBody) {
+    metricMappingBody.innerHTML = (metricSet.execution_mapping || [])
+      .map(
+        (item) => `
+          <tr>
+            <td>${escapeHtml(item.name || item.key)}</td>
+            <td>${escapeHtml(item.source || "未接入执行")}</td>
+            <td>${escapeHtml(item.formula || "仅配置，未接入执行")}</td>
+            <td>${escapeHtml(item.hard_gate ? "是" : "否")}</td>
+            <td>${escapeHtml(Number(item.target || 0).toFixed(2))}</td>
+          </tr>
         `,
       )
       .join("");

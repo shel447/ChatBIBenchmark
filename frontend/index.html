@@ -471,59 +471,73 @@
               </div>
             </div>
             <div class="metric-layout">
-              <div class="metric-set-list" data-metric-set-list>
-                <button class="metric-set-card active" type="button" data-metric-set-card="metric-nl2sql-exec">
-                  <div class="metric-set-card-top">
-                    <span class="chip">NL2SQL</span>
-                    <span class="metric-score-chip">门槛 0.84</span>
-                  </div>
-                  <div class="metric-set-card-title">NL2SQL 执行可靠性</div>
-                  <div class="metric-set-card-desc">执行准确率、测试套件准确率、可执行率、结果稳定率。</div>
-                </button>
-                <button class="metric-set-card" type="button" data-metric-set-card="metric-nl2chart-fidelity">
-                  <div class="metric-set-card-top">
-                    <span class="chip">NL2CHART</span>
-                    <span class="metric-score-chip">门槛 0.83</span>
-                  </div>
-                  <div class="metric-set-card-title">NL2CHART 图表保真</div>
-                  <div class="metric-set-card-desc">渲染成功率、图表类型准确率、字段绑定 F1、图表结构保真分。</div>
-                </button>
-                <button class="metric-set-card" type="button" data-metric-set-card="metric-report-dialogue">
-                  <div class="metric-set-card-top">
-                    <span class="chip">报告多轮交互</span>
-                    <span class="metric-score-chip">门槛 0.85</span>
-                  </div>
-                  <div class="metric-set-card-title">报告多轮交互生成</div>
-                  <div class="metric-set-card-desc">模板 Top1 命中率、任务成功率、事实精度与轮次效率。</div>
-                </button>
-              </div>
+                <div class="metric-set-list" data-metric-set-list>
+                  <button class="metric-set-card active" type="button" data-metric-set-card="metric-nl2sql-exec">
+                    <div class="metric-set-card-top">
+                      <span class="chip">NL2SQL</span>
+                      <div class="metric-card-meta">
+                        <span class="metric-status-chip planned">仅配置</span>
+                        <span class="metric-score-chip">门槛 0.84</span>
+                      </div>
+                    </div>
+                    <div class="metric-set-card-title">NL2SQL 执行可靠性</div>
+                    <div class="metric-set-card-desc">执行准确率、测试套件准确率、可执行率、结果稳定率。</div>
+                  </button>
+                  <button class="metric-set-card" type="button" data-metric-set-card="metric-nl2chart-fidelity">
+                    <div class="metric-set-card-top">
+                      <span class="chip">NL2CHART</span>
+                      <div class="metric-card-meta">
+                        <span class="metric-status-chip planned">仅配置</span>
+                        <span class="metric-score-chip">门槛 0.83</span>
+                      </div>
+                    </div>
+                    <div class="metric-set-card-title">NL2CHART 图表保真</div>
+                    <div class="metric-set-card-desc">渲染成功率、图表类型准确率、字段绑定 F1、图表结构保真分。</div>
+                  </button>
+                  <button class="metric-set-card" type="button" data-metric-set-card="metric-report-dialogue">
+                    <div class="metric-set-card-top">
+                      <span class="chip">报告多轮交互</span>
+                      <div class="metric-card-meta">
+                        <span class="metric-status-chip active">已接入执行</span>
+                        <span class="metric-score-chip">门槛 0.85</span>
+                      </div>
+                    </div>
+                    <div class="metric-set-card-title">报告多轮交互生成</div>
+                    <div class="metric-set-card-desc">模板 Top1 命中率、任务成功率、事实精度与轮次效率。</div>
+                  </button>
+                </div>
               <div class="metric-detail-panel" data-metric-set-detail>
                 <div class="metric-detail-header">
-                  <div>
-                    <div class="metric-detail-eyebrow">行业化指标组合</div>
-                    <h3 data-metric-detail-name>NL2SQL 执行可靠性</h3>
+                    <div>
+                      <div class="metric-detail-eyebrow">行业化指标组合</div>
+                      <h3 data-metric-detail-name>NL2SQL 执行可靠性</h3>
+                    </div>
+                    <div class="metric-detail-meta">
+                      <span class="chip" data-metric-detail-scenario>NL2SQL</span>
+                      <span class="metric-status-chip planned" data-metric-detail-execution-status>仅配置</span>
+                      <span class="metric-score-chip" data-metric-detail-threshold>发布门槛 0.84</span>
+                    </div>
                   </div>
-                  <div class="metric-detail-meta">
-                    <span class="chip" data-metric-detail-scenario>NL2SQL</span>
-                    <span class="metric-score-chip" data-metric-detail-threshold>发布门槛 0.84</span>
-                  </div>
-                </div>
-                <p class="metric-detail-description" data-metric-detail-description>
-                  参照 Spider/BIRD 的执行导向评测，强调执行结果正确而非 SQL 字符串命中。
+                  <p class="metric-detail-description" data-metric-detail-description>
+                    参照 Spider/BIRD 的执行导向评测，强调执行结果正确而非 SQL 字符串命中。
                 </p>
                 <div class="analysis-grid metric-overview-grid">
                   <div class="analysis-card">
                     <div class="analysis-label">总分公式</div>
                     <div class="analysis-value" data-metric-detail-formula>weighted_sum_with_gates</div>
                   </div>
-                  <div class="analysis-card">
-                    <div class="analysis-label">硬门禁个数</div>
-                    <div class="analysis-value" data-metric-detail-hard-gate-count>3</div>
+                    <div class="analysis-card">
+                      <div class="analysis-label">硬门禁个数</div>
+                      <div class="analysis-value" data-metric-detail-hard-gate-count>3</div>
+                    </div>
+                    <div class="analysis-card">
+                      <div class="analysis-label">生效状态</div>
+                      <div class="analysis-value" data-metric-detail-status-label>仅配置</div>
+                    </div>
                   </div>
-                </div>
-                <div class="metric-benchmark-block">
-                  <div class="subtle-title">参考基线</div>
-                  <div class="metric-benchmark-list" data-metric-benchmark-list>
+                  <div class="metric-benchmark-block">
+                    <div class="subtle-title">参考基线</div>
+                    <div class="metric-benchmark-list" data-metric-benchmark-list>
                     <a class="metric-benchmark-item" href="https://spider2-sql.github.io/" target="_blank" rel="noreferrer">
                       <strong>Spider 2.0</strong>
                       <span>真实企业级 text-to-SQL 成功率基线</span>
@@ -580,13 +594,36 @@
                         <td>否</td>
                         <td>防止非确定性输出影响体验</td>
                       </tr>
-                    </tbody>
-                  </table>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="metric-mapping-block">
+                    <div class="subtle-title">执行映射</div>
+                    <table class="table">
+                      <thead>
+                        <tr>
+                          <th>维度名</th>
+                          <th>执行来源</th>
+                          <th>公式</th>
+                          <th>硬门禁</th>
+                          <th>Target</th>
+                        </tr>
+                      </thead>
+                      <tbody data-metric-mapping-body>
+                        <tr>
+                          <td>执行准确率</td>
+                          <td>未接入执行</td>
+                          <td>仅配置，未接入执行</td>
+                          <td>是</td>
+                          <td>0.85</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
         <section class="view" data-view="case-list">
           <div class="panel full">

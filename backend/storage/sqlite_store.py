@@ -33,11 +33,16 @@ def init_db(db_path):
 def save_run(db_path, run_id, config, metrics):
     conn = sqlite3.connect(db_path)
     try:
+        cur = conn.execute(
+            "select created_at from report_run where run_id = ?",
+            (run_id,),
+        )
+        existing = cur.fetchone()
         conn.execute(
             "insert or replace into report_run(run_id, created_at, config_json, metrics_json) values (?, ?, ?, ?)",
             (
                 run_id,
-                datetime.now(timezone.utc).isoformat(),
+                existing[0] if existing else datetime.now(timezone.utc).isoformat(),
                 json.dumps(config or {}),
                 json.dumps(metrics or {}),
             ),
@@ -98,6 +103,27 @@ def list_runs(db_path, limit=50):
                 "created_at": row[1],
                 "config": json.loads(row[2] or "{}"),
                 "metrics": json.loads(row[3] or "{}"),
+            }
+            for row in rows
+        ]
+    finally:
+        conn.close()
+
+
+def list_case_results(db_path, run_id):
+    conn = sqlite3.connect(db_path)
+    try:
+        cur = conn.execute(
+            "select run_id, case_id, metrics_json, details_json from report_case_result where run_id = ? order by case_id asc",
+            (run_id,),
+        )
+        rows = cur.fetchall()
+        return [
+            {
+                "run_id": row[0],
+                "case_id": row[1],
+                "metrics": json.loads(row[2] or "{}"),
+                "details": json.loads(row[3] or "{}"),
             }
             for row in rows
         ]

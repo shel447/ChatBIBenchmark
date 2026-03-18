@@ -5,12 +5,21 @@ from .outline import flatten_outline_paths
 DEFAULT_TURNS = 5
 
 
-def score_template(expected_template_id, predicted_template_id, predicted_ranked_ids=None, k=3):
-    top1 = 1.0 if predicted_template_id == expected_template_id else 0.0
-    ranked = predicted_ranked_ids or (
-        [predicted_template_id] if predicted_template_id is not None else []
-    )
-    topk = 1.0 if expected_template_id in ranked[:k] else 0.0
+def score_template(
+    expected_template_id=None,
+    predicted_template_id=None,
+    predicted_ranked_ids=None,
+    k=3,
+    expected_template_value=None,
+    predicted_template_value=None,
+    predicted_ranked_values=None,
+):
+    expected = expected_template_value if expected_template_value is not None else expected_template_id
+    predicted = predicted_template_value if predicted_template_value is not None else predicted_template_id
+    ranked = predicted_ranked_values if predicted_ranked_values is not None else predicted_ranked_ids
+    top1 = 1.0 if predicted == expected else 0.0
+    ranked = ranked or ([predicted] if predicted is not None else [])
+    topk = 1.0 if expected in ranked[:k] else 0.0
     return {"top1": top1, "topk": topk}
 
 
@@ -176,11 +185,14 @@ def score_content_assertions(assertions, report_facts, adapter):
 def evaluate_report_case(case_payload, output_payload, adapter, config=None):
     config = config or {}
     n_turns = config.get("n_turns", DEFAULT_TURNS)
+    expected_template_value = case_payload.get("template_name") or case_payload.get("expected_template_id")
+    predicted_template_value = output_payload.get("selected_template_name") or output_payload.get("selected_template_id")
+    predicted_ranked_values = output_payload.get("candidate_template_names") or output_payload.get("candidate_template_ids")
 
     template_metrics = score_template(
-        expected_template_id=case_payload.get("expected_template_id"),
-        predicted_template_id=output_payload.get("selected_template_id"),
-        predicted_ranked_ids=output_payload.get("candidate_template_ids"),
+        expected_template_value=expected_template_value,
+        predicted_template_value=predicted_template_value,
+        predicted_ranked_values=predicted_ranked_values,
         k=config.get("topk", 3),
     )
 
@@ -218,11 +230,16 @@ def evaluate_report_case(case_payload, output_payload, adapter, config=None):
         + content_metrics["pass_rate"]
     ) / 5.0
 
+    delivery_metrics = {
+        "report_generated": bool(output_payload.get("report_markdown") or output_payload.get("report_json"))
+    }
+
     return {
         "template": template_metrics,
         "params": params_metrics,
         "completion": completion_metrics,
         "outline": outline_metrics,
         "content": content_metrics,
+        "delivery": delivery_metrics,
         "overall_score": overall,
     }

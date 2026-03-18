@@ -55,6 +55,10 @@ class MetricSetApiTests(unittest.TestCase):
             self.assertIn("任务成功率", dimension_names)
             self.assertIn("事实精度", dimension_names)
             self.assertTrue(any("FActScore" in title for title in ref_titles))
+            self.assertEqual(metric_set["execution_status"]["status"], "active")
+            self.assertIn("template_top1_accuracy", metric_set["execution_status"]["supported_dimension_keys"])
+            self.assertIn("execution_mapping", metric_set)
+            self.assertTrue(any(item["source"] == "template.top1" for item in metric_set["execution_mapping"]))
 
     def test_create_metric_set_supports_custom_weights(self):
         payload = {
@@ -137,6 +141,39 @@ class MetricSetApiTests(unittest.TestCase):
             response = client.post("/api/tasks", json=payload)
             self.assertEqual(response.status_code, 400)
             self.assertIn("metric_set", response.json()["detail"])
+
+    def test_list_metric_sets_marks_only_report_metric_as_active(self):
+        with TestClient(app_module.app) as client:
+            response = client.get("/api/metric-sets")
+            self.assertEqual(response.status_code, 200)
+            metric_sets = {item["metric_set_id"]: item for item in response.json()["metric_sets"]}
+            self.assertEqual(metric_sets["metric-report-dialogue"]["execution_status"]["status"], "active")
+            self.assertEqual(metric_sets["metric-nl2sql-exec"]["execution_status"]["status"], "planned")
+
+    def test_create_report_metric_set_rejects_unsupported_dimension_key(self):
+        payload = {
+            "name": "报告多轮交互 - 非法维度",
+            "scenario_type": "报告多轮交互",
+            "description": "测试非法指标键。",
+            "score_formula": "weighted_sum_with_gates",
+            "pass_threshold": 0.8,
+            "dimensions": [
+                {
+                    "key": "unsupported_metric_key",
+                    "name": "非法维度",
+                    "measurement": "不可执行",
+                    "weight": 1.0,
+                    "target": 0.9,
+                    "hard_gate": True,
+                    "business_value": "应被拒绝",
+                }
+            ],
+            "benchmark_refs": [],
+        }
+        with TestClient(app_module.app) as client:
+            response = client.post("/api/metric-sets", json=payload)
+            self.assertEqual(response.status_code, 400)
+            self.assertIn("unsupported_metric_key", response.json()["detail"])
 
 
 if __name__ == "__main__":

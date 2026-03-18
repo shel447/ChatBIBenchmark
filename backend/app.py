@@ -9,9 +9,15 @@ from fastapi.staticfiles import StaticFiles
 
 from .adapters.sqlite_adapter import SQLiteAdapter
 from .core.evaluator import evaluate_report_case
+from .core.report_metric_sets import (
+    ACTIVE_SCENARIO_TYPE,
+    aggregate_report_metric_set,
+    summarize_report_run,
+    validate_report_case_requirements,
+)
 from .core.usecases.case_set_usecases import export_case_set, get_case_set_detail, import_case_set, list_case_sets
 from .core.usecases.metric_set_usecases import create_metric_set, get_metric_set, list_metric_sets, update_metric_set
-from .core.usecases.run_usecases import get_run, list_runs
+from .core.usecases.run_usecases import get_run as get_execution_run, list_runs as list_execution_runs
 from .core.usecases.schedule_usecases import (
     DEFAULT_TIMEZONE,
     create_schedule,
@@ -30,7 +36,14 @@ from .storage.run_repository import (
     SqliteTaskRepository,
     init_run_db,
 )
-from .storage.sqlite_store import init_db, save_case_result, save_run
+from .storage.sqlite_store import (
+    get_run as get_report_run,
+    init_db,
+    list_case_results as list_report_case_results,
+    list_runs as list_report_runs,
+    save_case_result,
+    save_run,
+)
 
 APP_DIR = os.path.dirname(__file__)
 FRONTEND_DIR = os.path.abspath(os.path.join(APP_DIR, "..", "frontend"))
@@ -156,6 +169,62 @@ def _require_metric_set(metric_set_id: str):
     if not metric_set:
         raise HTTPException(status_code=400, detail="metric_set not found")
     return metric_set
+
+
+def _require_report_metric_set(metric_set_id: str):
+    metric_set = _require_metric_set(metric_set_id)
+    if metric_set.scenario_type != ACTIVE_SCENARIO_TYPE:
+        raise HTTPException(status_code=400, detail="metric_set must target 报告多轮交互")
+    return metric_set
+
+
+def _report_metric_set_summary(metric_set):
+    if not metric_set:
+        return None
+    return {
+        "metric_set_id": metric_set.metric_set_id,
+        "name": metric_set.name,
+        "scenario_type": metric_set.scenario_type,
+    }
+
+
+def _normalize_report_case_result(row):
+    metrics = row.get("metrics") or {}
+    raw_metrics = metrics.get("raw_metrics")
+    aggregated_metrics = metrics.get("aggregated_metrics")
+    if raw_metrics is None:
+        raw_metrics = metrics
+    return {
+        "case_id": row.get("case_id"),
+        "raw_metrics": raw_metrics or {},
+        "aggregated_metrics": aggregated_metrics,
+        "details": row.get("details") or {},
+    }
+
+
+def _serialize_report_run_row(run_row):
+    config = run_row.get("config") or {}
+    metric_set_id = config.get("metric_set_id")
+    metric_set = SqliteMetricSetRepository(DEFAULT_RUN_DB).get(metric_set_id) if metric_set_id else None
+    return {
+        "run_id": run_row.get("run_id"),
+        "created_at": run_row.get("created_at"),
+        "config": config,
+        "metrics": run_row.get("metrics") or {},
+        "metric_set": _report_metric_set_summary(metric_set),
+    }
+
+
+def _evaluate_report_with_metric_set(case_payload, output_payload, config, data_db_path, metric_set_id=None):
+    adapter = SQLiteAdapter(data_db_path)
+    raw_metrics = evaluate_report_case(case_payload, output_payload, adapter, config)
+    metric_set = None
+    aggregated_metrics = None
+    if metric_set_id:
+        metric_set = _require_report_metric_set(metric_set_id)
+        validate_report_case_requirements(metric_set, case_payload)
+        aggregated_metrics = aggregate_report_metric_set(metric_set, raw_metrics, config)
+    return raw_metrics, metric_set, aggregated_metrics
 
 
 def _scheduler_loop(stop_event: threading.Event):
@@ -400,14 +469,14 @@ async def create_run_api(request: Request):
 @app.get("/api/runs")
 async def list_runs_api():
     repo = SqliteRunRepository(DEFAULT_RUN_DB)
-    runs = [_run_to_dict(run) for run in list_runs(repo)]
+    runs = [_run_to_dict(run) for run in list_execution_runs(repo)]
     return {"runs": runs}
 
 
 @app.get("/api/runs/{run_id}")
 async def get_run_api(run_id: str):
     repo = SqliteRunRepository(DEFAULT_RUN_DB)
-    run = get_run(repo, run_id)
+    run = get_execution_run(repo, run_id)
     if not run:
         raise HTTPException(status_code=404, detail="run not found")
     return {"run": _run_to_dict(run)}
@@ -505,15 +574,52 @@ async def evaluate_case(request: Request):
     output_payload = payload.get("output")
     config = payload.get("config") or {}
     data_db_path = payload.get("data_db_path")
+    metric_set_id = payload.get("metric_set_id")
 
     if not case_payload or not output_payload:
         raise HTTPException(status_code=400, detail="case and output are required")
     if not data_db_path:
         raise HTTPException(status_code=400, detail="data_db_path is required")
 
-    adapter = SQLiteAdapter(data_db_path)
-    metrics = evaluate_report_case(case_payload, output_payload, adapter, config)
-    return {"metrics": metrics}
+    try:
+        raw_metrics, metric_set, aggregated_metrics = _evaluate_report_with_metric_set(
+            case_payload,
+            output_payload,
+            config,
+            data_db_path,
+            metric_set_id=metric_set_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    if not metric_set:
+        return {"metrics": raw_metrics}
+    return {
+        "raw_metrics": raw_metrics,
+        "applied_metric_set": _report_metric_set_summary(metric_set),
+        "aggregated_metrics": aggregated_metrics,
+    }
+
+
+@app.get("/api/report/runs")
+async def list_report_runs_api():
+    runs = [_serialize_report_run_row(row) for row in list_report_runs(DEFAULT_META_DB)]
+    return {"runs": runs}
+
+
+@app.get("/api/report/runs/{run_id}")
+async def get_report_run_api(run_id: str):
+    run_row = get_report_run(DEFAULT_META_DB, run_id)
+    if not run_row:
+        raise HTTPException(status_code=404, detail="report run not found")
+    case_rows = [_normalize_report_case_result(item) for item in list_report_case_results(DEFAULT_META_DB, run_id)]
+    metric_set_id = (run_row.get("config") or {}).get("metric_set_id")
+    metric_set = SqliteMetricSetRepository(DEFAULT_RUN_DB).get(metric_set_id) if metric_set_id else None
+    return {
+        "run": _serialize_report_run_row(run_row),
+        "metric_set": _report_metric_set_summary(metric_set),
+        "case_results": case_rows,
+    }
 
 
 @app.post("/api/report/runs")
@@ -525,6 +631,7 @@ async def evaluate_and_store_run(request: Request):
     config = payload.get("config") or {}
     data_db_path = payload.get("data_db_path")
     meta_db_path = payload.get("meta_db_path") or DEFAULT_META_DB
+    metric_set_id = payload.get("metric_set_id")
 
     if not run_id:
         raise HTTPException(status_code=400, detail="run_id is required")
@@ -533,16 +640,49 @@ async def evaluate_and_store_run(request: Request):
     if not data_db_path:
         raise HTTPException(status_code=400, detail="data_db_path is required")
 
-    adapter = SQLiteAdapter(data_db_path)
-    metrics = evaluate_report_case(case_payload, output_payload, adapter, config)
+    try:
+        raw_metrics, metric_set, aggregated_metrics = _evaluate_report_with_metric_set(
+            case_payload,
+            output_payload,
+            config,
+            data_db_path,
+            metric_set_id=metric_set_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    save_run(meta_db_path, run_id, config, {"overall_score": metrics["overall_score"]})
+    run_config = {**config}
+    if metric_set_id:
+        run_config["metric_set_id"] = metric_set_id
     save_case_result(
         meta_db_path,
         run_id,
         case_payload.get("case_id", "case-unknown"),
-        metrics,
-        {"output": output_payload},
+        {
+            "raw_metrics": raw_metrics,
+            "aggregated_metrics": aggregated_metrics,
+        },
+        {
+            "output": output_payload,
+            "metric_set": _report_metric_set_summary(metric_set),
+        },
     )
+    case_results = [_normalize_report_case_result(item) for item in list_report_case_results(meta_db_path, run_id)]
+    run_summary = summarize_report_run(metric_set, case_results, run_config)
+    save_run(meta_db_path, run_id, run_config, run_summary)
 
-    return {"run_id": run_id, "metrics": metrics}
+    response = {
+        "run_id": run_id,
+        "run_summary": run_summary,
+    }
+    if metric_set:
+        response.update(
+            {
+                "raw_metrics": raw_metrics,
+                "applied_metric_set": _report_metric_set_summary(metric_set),
+                "aggregated_metrics": aggregated_metrics,
+            }
+        )
+    else:
+        response["metrics"] = raw_metrics
+    return response

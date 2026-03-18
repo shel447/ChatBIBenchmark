@@ -4,6 +4,12 @@ from typing import Dict, List, Optional
 
 from ..domain.metric_set import MetricSet
 from ..ports.metric_set_repository import MetricSetRepository
+from ..report_metric_sets import (
+    ACTIVE_SCENARIO_TYPE,
+    execution_mapping_for_metric_set,
+    execution_status_for_metric_set,
+    validate_report_dimension_keys,
+)
 
 
 VALID_SCENARIO_TYPES = {"通用", "NL2SQL", "NL2CHART", "报告多轮交互", "智能问数"}
@@ -41,9 +47,12 @@ def _validate_metric_set_payload(
         total_weight += float(dimension["weight"])
     if total_weight <= 0:
         raise ValueError("dimensions weight sum must be positive")
+    if scenario_type == ACTIVE_SCENARIO_TYPE:
+        validate_report_dimension_keys(dimensions)
 
 
 def _metric_set_to_dict(metric_set: MetricSet) -> Dict[str, object]:
+    execution_status = execution_status_for_metric_set(metric_set)
     return {
         "metric_set_id": metric_set.metric_set_id,
         "name": metric_set.name,
@@ -53,6 +62,8 @@ def _metric_set_to_dict(metric_set: MetricSet) -> Dict[str, object]:
         "pass_threshold": metric_set.pass_threshold,
         "dimensions": metric_set.dimensions,
         "benchmark_refs": metric_set.benchmark_refs,
+        "execution_status": execution_status,
+        "execution_mapping": execution_mapping_for_metric_set(metric_set),
         "created_at": metric_set.created_at,
         "updated_at": metric_set.updated_at,
     }
