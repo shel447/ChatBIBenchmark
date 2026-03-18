@@ -15,7 +15,7 @@
 
 | 文件 | 默认路径 | 作用 |
 | --- | --- | --- |
-| `runs.db` | `backend/runs.db` | 任务、执行记录、定时任务、指标集 |
+| `runs.db` | `backend/runs.db` | 任务、执行记录、逐用例执行结果、定时任务、指标集 |
 | `case_sets.db` | `backend/case_sets.db` | 用例集与用例内容 |
 | `report_eval.db` | `backend/report_eval.db` | 报告评测 run 与 case 结果 |
 
@@ -28,6 +28,7 @@
 ### 2.2 当前代价
 
 - 跨库事务无法统一处理。
+- 结果报告导出和趋势分析依赖 `eval_run_case_result`，因此执行记录与逐用例明细需要同步维护。
 - 备份和迁移需要同时关注多个文件。
 - 默认数据库路径在代码目录下，不利于多机部署和持久化目录隔离。
 
@@ -56,6 +57,14 @@ erDiagram
         string execution_status
         string started_at
         string ended_at
+    }
+    EVAL_RUN_CASE_RESULT {
+        string run_id FK
+        string case_id PK
+        string case_type
+        float accuracy
+        string status
+        string detail_metrics_json
     }
     SCHEDULE_JOB {
         string schedule_id PK
@@ -96,6 +105,7 @@ erDiagram
     }
 
     EVAL_TASK ||--o{ EVAL_RUN : generates
+    EVAL_RUN ||--o{ EVAL_RUN_CASE_RESULT : details
     EVAL_TASK ||--o| SCHEDULE_JOB : binds
     CASE_SET ||--o{ CASE_ITEM : contains
     REPORT_RUN ||--o{ REPORT_CASE_RESULT : aggregates

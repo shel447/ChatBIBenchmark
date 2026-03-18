@@ -7,6 +7,7 @@ from ..domain.schedule import ScheduleJob
 from ..ports.schedule_repository import ScheduleRepository
 from ..ports.task_repository import TaskRepository
 from .task_usecases import execute_task
+from backend.storage.case_set_repository import SqliteCaseSetRepository
 from backend.storage.run_repository import SqliteRunRepository, SqliteScheduleRepository, SqliteTaskRepository
 
 
@@ -169,11 +170,12 @@ def delete_schedule(schedule_repo: ScheduleRepository, task_repo: TaskRepository
     schedule_repo.delete(schedule_id)
 
 
-def process_due_schedules(db_path: str, now: Optional[datetime] = None) -> int:
+def process_due_schedules(db_path: str, case_set_db_path: Optional[str] = None, now: Optional[datetime] = None) -> int:
     now_dt = now.astimezone(timezone.utc) if now else _utc_now()
     schedule_repo = SqliteScheduleRepository(db_path)
     task_repo = SqliteTaskRepository(db_path)
     run_repo = SqliteRunRepository(db_path)
+    case_set_repo = SqliteCaseSetRepository(case_set_db_path) if case_set_db_path else None
     due_items = schedule_repo.list_due(now_dt.isoformat())
     processed = 0
 
@@ -181,7 +183,9 @@ def process_due_schedules(db_path: str, now: Optional[datetime] = None) -> int:
         task = task_repo.get(schedule.task_id)
         if not task:
             continue
-        execute_task(task_repo, run_repo, task.task_id, trigger_source="schedule")
+        task, run = execute_task(task_repo, run_repo, task.task_id, trigger_source="schedule")
+        if case_set_repo:
+            materialize_execution_results(run_repo, task_repo, case_set_repo, run.run_id)
         processed += 1
         schedule.last_triggered_at = now_dt.isoformat()
         if schedule.schedule_type == "one_time":

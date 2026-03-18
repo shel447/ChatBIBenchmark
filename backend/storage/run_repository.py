@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from backend.core.domain.metric_set import MetricSet
 from backend.core.domain.run import Run
+from backend.core.domain.run_case_result import RunCaseResult
 from backend.core.domain.schedule import ScheduleJob
 from backend.core.domain.task import Task
 
@@ -40,6 +41,23 @@ create table if not exists eval_run (
   execution_status text not null,
   started_at text not null,
   ended_at text
+);
+
+create table if not exists eval_run_case_result (
+  run_id text not null,
+  task_id text,
+  case_set_id text not null,
+  case_id text not null,
+  case_title text not null,
+  case_type text not null,
+  accuracy real not null,
+  status text not null,
+  issue_tags_json text not null,
+  detail_metrics_json text not null,
+  summary text not null,
+  created_at text not null,
+  updated_at text not null,
+  primary key (run_id, case_id)
 );
 
 create table if not exists schedule_job (
@@ -434,6 +452,24 @@ def _run_from_row(row) -> Run:
     )
 
 
+def _run_case_result_from_row(row) -> RunCaseResult:
+    return RunCaseResult(
+        run_id=row[0],
+        task_id=row[1],
+        case_set_id=row[2],
+        case_id=row[3],
+        case_title=row[4],
+        case_type=row[5],
+        accuracy=row[6],
+        status=row[7],
+        issue_tags=json.loads(row[8] or "[]"),
+        detail_metrics=json.loads(row[9] or "{}"),
+        summary=row[10],
+        created_at=row[11],
+        updated_at=row[12],
+    )
+
+
 def _schedule_from_row(row) -> ScheduleJob:
     return ScheduleJob(
         schedule_id=row[0],
@@ -581,6 +617,34 @@ class SqliteRunRepository:
             conn.close()
         return run
 
+    def update(self, run: Run) -> Run:
+        conn = _connect(self.db_path)
+        try:
+            conn.execute(
+                "update eval_run set task_id = ?, name = ?, case_set_id = ?, environment_id = ?, metric_set_id = ?, repeat_count = ?, total_cases = ?, executed_cases = ?, accuracy = ?, status = ?, trigger_source = ?, execution_status = ?, started_at = ?, ended_at = ? where run_id = ?",
+                (
+                    run.task_id,
+                    run.name,
+                    run.case_set_id,
+                    run.environment_id,
+                    run.metric_set_id,
+                    run.repeat_count,
+                    run.total_cases,
+                    run.executed_cases,
+                    run.accuracy,
+                    run.execution_status,
+                    run.trigger_source,
+                    run.execution_status,
+                    run.started_at,
+                    run.ended_at,
+                    run.run_id,
+                ),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+        return run
+
     def list(self, limit: int = 50) -> List[Run]:
         conn = _connect(self.db_path)
         try:
@@ -607,6 +671,19 @@ class SqliteRunRepository:
             conn.close()
         return [_run_from_row(row) for row in rows]
 
+    def list_by_case_set(self, case_set_id: str, limit: int = 100) -> List[Run]:
+        conn = _connect(self.db_path)
+        try:
+            cur = conn.execute(
+                "select run_id, task_id, name, case_set_id, environment_id, metric_set_id, repeat_count, total_cases, executed_cases, accuracy, trigger_source, execution_status, started_at, ended_at "
+                "from eval_run where case_set_id = ? order by started_at asc limit ?",
+                (case_set_id, limit),
+            )
+            rows = cur.fetchall()
+        finally:
+            conn.close()
+        return [_run_from_row(row) for row in rows]
+
     def get(self, run_id: str) -> Optional[Run]:
         conn = _connect(self.db_path)
         try:
@@ -619,6 +696,62 @@ class SqliteRunRepository:
         finally:
             conn.close()
         return _run_from_row(row) if row else None
+
+    def replace_case_results(self, run_id: str, results: List[RunCaseResult]) -> List[RunCaseResult]:
+        conn = _connect(self.db_path)
+        try:
+            conn.execute("delete from eval_run_case_result where run_id = ?", (run_id,))
+            for item in results:
+                conn.execute(
+                    "insert into eval_run_case_result(run_id, task_id, case_set_id, case_id, case_title, case_type, accuracy, status, issue_tags_json, detail_metrics_json, summary, created_at, updated_at) "
+                    "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        item.run_id,
+                        item.task_id,
+                        item.case_set_id,
+                        item.case_id,
+                        item.case_title,
+                        item.case_type,
+                        item.accuracy,
+                        item.status,
+                        json.dumps(item.issue_tags, ensure_ascii=False),
+                        json.dumps(item.detail_metrics, ensure_ascii=False),
+                        item.summary,
+                        item.created_at,
+                        item.updated_at,
+                    ),
+                )
+            conn.commit()
+        finally:
+            conn.close()
+        return results
+
+    def list_case_results(self, run_id: str) -> List[RunCaseResult]:
+        conn = _connect(self.db_path)
+        try:
+            cur = conn.execute(
+                "select run_id, task_id, case_set_id, case_id, case_title, case_type, accuracy, status, issue_tags_json, detail_metrics_json, summary, created_at, updated_at "
+                "from eval_run_case_result where run_id = ? order by case_id asc",
+                (run_id,),
+            )
+            rows = cur.fetchall()
+        finally:
+            conn.close()
+        return [_run_case_result_from_row(row) for row in rows]
+
+    def list_case_history(self, case_set_id: str, case_id: str, limit: int = 100) -> List[RunCaseResult]:
+        conn = _connect(self.db_path)
+        try:
+            cur = conn.execute(
+                "select r.run_id, c.task_id, c.case_set_id, c.case_id, c.case_title, c.case_type, c.accuracy, c.status, c.issue_tags_json, c.detail_metrics_json, c.summary, c.created_at, c.updated_at "
+                "from eval_run_case_result c join eval_run r on r.run_id = c.run_id "
+                "where c.case_set_id = ? and c.case_id = ? order by r.started_at asc limit ?",
+                (case_set_id, case_id, limit),
+            )
+            rows = cur.fetchall()
+        finally:
+            conn.close()
+        return [_run_case_result_from_row(row) for row in rows]
 
 
 class SqliteScheduleRepository:

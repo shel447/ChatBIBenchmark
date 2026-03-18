@@ -121,6 +121,52 @@
               </div>
             </div>
           </div>
+          <div class="panel full dashboard-stage">
+            <div class="panel-header">
+              <div>
+                <h2>执行趋势分析</h2>
+                <div class="filters">
+                  <span class="chip" data-overview-refresh-note>最近执行</span>
+                </div>
+              </div>
+            </div>
+            <div class="trend-stats dashboard-trend-stats">
+              <div class="summary-card">
+                <div class="summary-label">最近综合准确率</div>
+                <div class="summary-value" data-overview-latest-accuracy>--</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">相邻变动</div>
+                <div class="summary-value" data-overview-latest-delta>--</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">覆盖用例集</div>
+                <div class="summary-value" data-overview-case-set-count>0</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-label">回归告警数</div>
+                <div class="summary-value" data-overview-alert-count>0</div>
+              </div>
+            </div>
+            <div class="insight-columns">
+              <div>
+                <div class="subtle-title">整体准确率走势</div>
+                <div class="trend-chart-shell large" data-overview-global-chart>暂无趋势数据</div>
+              </div>
+              <div>
+                <div class="subtle-title">用例集表现</div>
+                <div class="overview-case-set-list" data-overview-case-set-list>
+                  <div class="insight-empty">暂无用例集趋势</div>
+                </div>
+              </div>
+            </div>
+            <div class="panel-header compact-header">
+              <h3>回归劣化预警</h3>
+            </div>
+            <div class="insight-list" data-overview-alert-list>
+              <div class="insight-empty">暂无回归劣化预警</div>
+            </div>
+          </div>
         </section>
 
         <section class="view" data-view="runs">
@@ -681,6 +727,46 @@
                 </tr>
               </tbody>
             </table>
+            <div class="panel subtle">
+              <div class="panel-header">
+                <h3>用例集准确率趋势</h3>
+                <span class="chip" data-case-set-trend-summary>暂无执行</span>
+              </div>
+              <div class="trend-stats">
+                <div class="summary-card">
+                  <div class="summary-label">最近准确率</div>
+                  <div class="summary-value" data-case-set-trend-latest>未执行</div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-label">相邻变动</div>
+                  <div class="summary-value" data-case-set-trend-delta>--</div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-label">执行次数</div>
+                  <div class="summary-value" data-case-set-trend-count>0</div>
+                </div>
+              </div>
+              <div class="trend-chart-shell" data-case-set-trend-chart>暂无趋势数据</div>
+            </div>
+            <div class="panel subtle">
+              <div class="panel-header">
+                <h3>趋势洞察</h3>
+              </div>
+              <div class="insight-columns">
+                <div>
+                  <div class="subtle-title">回归劣化预警</div>
+                  <div class="insight-list" data-case-set-regression-list>
+                    <div class="insight-empty">暂无回归劣化预警</div>
+                  </div>
+                </div>
+                <div>
+                  <div class="subtle-title">不稳定用例</div>
+                  <div class="insight-list" data-case-set-unstable-list>
+                    <div class="insight-empty">暂无不稳定用例</div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <input class="hidden-file-input" data-case-set-file-input type="file" accept=".xlsx" />
           </div>
         </section>
@@ -697,6 +783,7 @@
                 <h2 data-task-detail-heading>任务详情：零售待执行任务</h2>
               </div>
               <div class="panel-actions">
+                <button class="ghost" type="button" data-open-task-report-modal>导出结果报告</button>
                 <button class="primary" type="button" data-execute-task>立即执行</button>
                 <span class="chip" data-task-detail-case-count>未执行</span>
               </div>
@@ -774,6 +861,29 @@
                   <div class="analysis-value" data-task-detail-trigger-source>未执行</div>
                 </div>
               </div>
+            </div>
+            <div class="panel subtle">
+              <div class="panel-header">
+                <h3>最近用例执行明细</h3>
+                <span class="chip">最新执行</span>
+              </div>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>用例ID</th>
+                    <th>标题</th>
+                    <th>类型</th>
+                    <th>准确率</th>
+                    <th>状态</th>
+                    <th>问题标签</th>
+                  </tr>
+                </thead>
+                <tbody data-task-case-results-body>
+                  <tr>
+                    <td colspan="6">当前暂无用例执行结果</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
             <div class="panel subtle">
               <div class="panel-header">
@@ -924,6 +1034,30 @@
                 </div>
               </div>
             </div>
+            <div class="panel subtle">
+              <div class="panel-header">
+                <h3>用例准确率趋势</h3>
+                <span class="chip" data-case-trend-summary>暂无执行</span>
+              </div>
+              <div class="trend-stats">
+                <div class="summary-card">
+                  <div class="summary-label">最近准确率</div>
+                  <div class="summary-value" data-case-trend-latest>未执行</div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-label">相邻变动</div>
+                  <div class="summary-value" data-case-trend-delta>--</div>
+                </div>
+                <div class="summary-card">
+                  <div class="summary-label">波动率</div>
+                  <div class="summary-value" data-case-trend-volatility>--</div>
+                </div>
+              </div>
+              <div class="trend-chart-shell" data-case-trend-chart>暂无趋势数据</div>
+              <div class="insight-list compact" data-case-trend-alerts>
+                <div class="insight-empty">暂无趋势洞察</div>
+              </div>
+            </div>
           </div>
         </section>
       </main>
@@ -1031,7 +1165,38 @@
         </form>
       </div>
     </div>
-    <div class="modal hidden" id="metric-modal" role="dialog" aria-modal="true">
+    <div class="modal hidden" id="task-report-modal" role="dialog" aria-modal="true">
+      <div class="modal-backdrop" data-close-task-report-modal></div>
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>导出结果报告</h3>
+          <button class="modal-close" type="button" data-close-task-report-modal>×</button>
+        </div>
+        <form class="modal-body" id="task-report-form">
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="filter-label">报告格式</span>
+              <select class="filter-select" data-task-report-profile-select required>
+                <option value="">请选择</option>
+              </select>
+            </label>
+            <div class="form-field">
+              <span class="filter-label">导出对象</span>
+              <div class="metric-inline-meta" data-task-report-run-summary>最新执行结果</div>
+            </div>
+            <label class="form-field form-field-full">
+              <span class="filter-label">报告说明</span>
+              <div class="code-box preformatted" data-task-report-description>请选择一种报告格式。</div>
+            </label>
+          </div>
+          <div class="modal-error hidden" data-task-report-error>请选择报告格式</div>
+          <div class="modal-footer">
+            <button class="ghost" type="button" data-close-task-report-modal>取消</button>
+            <button class="primary" type="submit" data-task-report-submit>导出</button>
+          </div>
+        </form>
+      </div>
+    </div>    <div class="modal hidden" id="metric-modal" role="dialog" aria-modal="true">
       <div class="modal-backdrop" data-close-metric-modal></div>
       <div class="modal-card modal-card-wide">
         <div class="modal-header">
