@@ -7,3 +7,4 @@ tests/.tmp/
 .venv/
 uvicorn*.log
 .worktrees/
+.tmp-test-case-sets/
